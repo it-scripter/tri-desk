@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+#
+# Local quality gate: style, static analysis and tests must pass before a commit.
+# Enable once per clone:  git config core.hooksPath .githooks
+# Skip a single commit:   git commit --no-verify
+#
+set -euo pipefail
+
+if ! command -v ddev >/dev/null 2>&1; then
+    echo "ddev nicht gefunden - Pruefung uebersprungen." >&2
+    exit 0
+fi
+
+if [ "$(ddev describe -j 2>/dev/null | grep -c '"status":"running"')" -eq 0 ]; then
+    echo "ddev laeuft nicht - bitte 'ddev start' ausfuehren oder mit --no-verify committen." >&2
+    exit 1
+fi
+
+echo "Pint, PHPStan und Pest laufen..."
+ddev exec composer check

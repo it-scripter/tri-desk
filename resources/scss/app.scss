@@ -1,0 +1,101 @@
+// Base styles of the public frontend. Mobile first (specification chapter 9),
+// no framework, no external fonts.
+//
+// The colours are CSS custom properties so a competition can override them
+// later with its own theme (C-07) without touching the compiled stylesheet.
+
+:root {
+    --colour-text: #1b1b18;
+    --colour-muted: #5f5f58;
+    --colour-background: #fdfdfc;
+    --colour-surface: #ffffff;
+    --colour-border: #e3e3dd;
+    --colour-accent: #1d4ed8;
+
+    --spacing: 1rem;
+    --measure: 46rem;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--colour-text);
+    background: var(--colour-background);
+}
+
+a {
+    color: var(--colour-accent);
+
+    &:hover {
+        text-decoration: none;
+    }
+}
+
+.page {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: calc(var(--spacing) * 2) var(--spacing);
+}
+
+.page__header {
+    padding-bottom: var(--spacing);
+    margin-bottom: calc(var(--spacing) * 2);
+    border-bottom: 1px solid var(--colour-border);
+}
+
+.page__title {
+    margin: 0 0 0.25rem;
+    font-size: 1.75rem;
+    line-height: 1.2;
+}
+
+.page__subtitle {
+    margin: 0;
+    color: var(--colour-muted);
+}
+
+.card-list {
+    display: grid;
+    gap: var(--spacing);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.card {
+    padding: var(--spacing);
+    background: var(--colour-surface);
+    border: 1px solid var(--colour-border);
+    border-radius: 0.5rem;
+
+    h2,
+    h3 {
+        margin-top: 0;
+    }
+
+    p:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.meta {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--colour-muted);
+}
+
+.notice {
+    padding: var(--spacing);
+    color: var(--colour-muted);
+    border: 1px dashed var(--colour-border);
+    border-radius: 0.5rem;
+}
