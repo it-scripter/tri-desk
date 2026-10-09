@@ -3,7 +3,7 @@
 Portal für Wettkampf-Anmeldungen, Helferportal und Wettkampf-Webseiten eines Triathlon-Veranstalters
 (Volkstriathlon, BerlinWoMen, Schüler-Duathlon).
 
-**Maßgeblich ist das Pflichtenheft: `docs/pflichtenheft.md`.** Jede Anforderung hat eine ID
+**Maßgeblich ist das Pflichtenheft: `docs/toc.md`.** Jede Anforderung hat eine ID
 (W-xx Wettkampf, H-xx Helfer, C-xx CMS, B-xx Basisfunktionen). Beziehe dich in Plänen, Commits und
 Tests auf diese IDs. Bei Widersprüchen zwischen Code und Pflichtenheft: nachfragen, nicht raten.
 
