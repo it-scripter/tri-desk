@@ -2,7 +2,7 @@ includes:
     - vendor/larastan/larastan/extension.neon
 
 parameters:
-    level: 6
+    level: 8
 
     # Pest test files are closures without a resolvable $this, which PHPStan
     # cannot analyse; application code and seeders are covered instead.

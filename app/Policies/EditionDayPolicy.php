@@ -29,11 +29,19 @@ class EditionDayPolicy
 
     public function update(User $user, EditionDay $day): bool
     {
+        if ($day->edition->isClosed()) {
+            return false;
+        }
+
         return $user->hasPermissionFor('edition.update', $day->edition);
     }
 
     public function delete(User $user, EditionDay $day): bool
     {
+        if ($day->edition->isClosed()) {
+            return false;
+        }
+
         return $user->hasPermissionFor('edition.update', $day->edition);
     }
 }

@@ -27,8 +27,17 @@ class EditionPolicy
         return $user->hasPermissionFor('edition.create');
     }
 
+    /**
+     * An archived or cancelled edition is a record, not a workspace. The
+     * super admin still passes through Gate::before, so correcting historic
+     * data stays possible - just not by an orga team by accident.
+     */
     public function update(User $user, Edition $edition): bool
     {
+        if ($edition->isClosed()) {
+            return false;
+        }
+
         return $user->hasPermissionFor('edition.update', $edition);
     }
 

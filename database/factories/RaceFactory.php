@@ -21,7 +21,10 @@ class RaceFactory extends Factory
      */
     public function definition(): array
     {
-        $name = Str::title(fake()->unique()->words(2, true));
+        // asText guarantees a string; the stub still declares array|string.
+        /** @var string $words */
+        $words = fake()->unique()->words(2, true);
+        $name = Str::title($words);
 
         return [
             'edition_id' => Edition::factory(),

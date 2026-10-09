@@ -34,6 +34,10 @@ return [
         'is_current' => 'Je Wettkampf kann nur eine Ausgabe die aktuelle sein; die bisherige wird automatisch abgewählt.',
     ],
 
+    'validation' => [
+        'not_editable' => 'Diese Ausgabe ist abgeschlossen und kann nicht mehr bearbeitet werden.',
+    ],
+
     'day' => [
         'label' => 'Wettkampftag',
         'plural_label' => 'Wettkampftage',

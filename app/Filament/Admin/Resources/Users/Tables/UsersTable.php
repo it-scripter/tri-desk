@@ -3,6 +3,8 @@
 namespace App\Filament\Admin\Resources\Users\Tables;
 
 use App\Domain\Access\Enums\RoleName;
+use App\Domain\Access\Models\RoleAssignment;
+use App\Domain\Competition\Models\Edition;
 use App\Models\User;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -39,7 +41,7 @@ class UsersTable
                     ->label(__('user.fields.roles'))
                     ->badge()
                     ->state(fn (User $record): array => $record->roleAssignments
-                        ->map(fn ($assignment): string => self::assignmentLabel($assignment))
+                        ->map(fn (RoleAssignment $assignment): string => self::assignmentLabel($assignment))
                         ->unique()
                         ->values()
                         ->all()),
@@ -76,7 +78,7 @@ class UsersTable
     /**
      * Role with its scope, e.g. "Orga-Team (Volkstriathlon 2027)".
      */
-    private static function assignmentLabel(object $assignment): string
+    private static function assignmentLabel(RoleAssignment $assignment): string
     {
         $role = $assignment->role?->name;
         $label = $role === null ? '?' : (RoleName::tryFrom($role)?->label() ?? $role);
@@ -86,7 +88,10 @@ class UsersTable
         }
 
         $scope = $assignment->scope;
-        $title = method_exists($scope, 'titleWithNumber') ? $scope->titleWithNumber() : class_basename($scope ?? '');
+
+        $title = $scope instanceof Edition
+            ? $scope->titleWithNumber()
+            : class_basename($scope ?? $assignment->scope_type);
 
         return "{$label} ({$title})";
     }

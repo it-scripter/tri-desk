@@ -155,3 +155,28 @@ it('shows the team panel placeholder to a team leader', function () {
         ->assertSee('Teamleitung')
         ->assertSee('Helferportal');
 });
+
+it('does not offer a closed edition when creating a race', function () {
+    $this->orga->assignRoleFor(RoleName::Orga, $this->otherEdition);
+
+    // The 2026 edition is archived, so it must not be selectable even though
+    // the person holds a role in it.
+    livewire(CreateRace::class)
+        ->fillForm([
+            'edition_id' => $this->otherEdition->id,
+            'name' => 'Nachträglich',
+            'slug' => 'nachtraeglich',
+            'type' => 'individual',
+            'discipline_sequence' => [['discipline' => 'swim'], ['discipline' => 'bike'], ['discipline' => 'run']],
+        ])
+        ->call('create')
+        ->assertHasFormErrors(['edition_id']);
+
+    expect($this->otherEdition->races()->where('slug', 'nachtraeglich')->exists())->toBeFalse();
+});
+
+it('refuses to edit a race of an archived edition', function () {
+    $this->orga->assignRoleFor(RoleName::Orga, $this->otherEdition);
+
+    $this->get("/orga/races/{$this->otherRace->id}/edit")->assertForbidden();
+});

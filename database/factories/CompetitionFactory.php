@@ -18,6 +18,8 @@ class CompetitionFactory extends Factory
      */
     public function definition(): array
     {
+        // asText guarantees a string; the stub still declares array|string.
+        /** @var string $name */
         $name = fake()->unique()->words(2, true);
 
         return [

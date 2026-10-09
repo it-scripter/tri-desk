@@ -144,3 +144,39 @@ it('does not narrow the list for a globally permitted user', function () {
     expect(Edition::query()->visibleTo($global)->count())->toBe(2)
         ->and(Race::query()->visibleTo($global)->count())->toBe(2);
 });
+
+it('makes an archived edition read only for the orga team', function () {
+    $archived = Edition::factory()->for($this->competition)->archived()->create(['year' => 2025, 'slug' => '2025']);
+    $race = Race::factory()->for($archived)->create();
+    $day = EditionDay::factory()->for($archived)->create();
+
+    $this->orga->assignRoleFor(RoleName::Orga, $archived);
+
+    expect($this->orga->can('view', $archived))->toBeTrue()
+        ->and($this->orga->can('update', $archived))->toBeFalse()
+        ->and($this->orga->can('update', $race))->toBeFalse()
+        ->and($this->orga->can('delete', $race))->toBeFalse()
+        ->and($this->orga->can('update', $day))->toBeFalse()
+        ->and($this->orga->can('delete', $day))->toBeFalse();
+});
+
+it('makes a cancelled edition read only too', function () {
+    $cancelled = Edition::factory()->for($this->competition)->cancelled()->create(['year' => 2020, 'slug' => '2020']);
+    $this->orga->assignRoleFor(RoleName::Orga, $cancelled);
+
+    expect($this->orga->can('view', $cancelled))->toBeTrue()
+        ->and($this->orga->can('update', $cancelled))->toBeFalse();
+});
+
+it('still lets the organiser correct historic data', function () {
+    $admin = User::factory()->create();
+    $admin->assignRoleFor(RoleName::SuperAdmin);
+
+    $archived = Edition::factory()->for($this->competition)->archived()->create(['year' => 2025, 'slug' => '2025']);
+    $race = Race::factory()->for($archived)->create();
+
+    // Gate::before waves the super admin through, so a correction to the
+    // result archive stays possible.
+    expect($admin->can('update', $archived))->toBeTrue()
+        ->and($admin->can('update', $race))->toBeTrue();
+});

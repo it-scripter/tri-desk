@@ -13,7 +13,9 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'trideskapp'),
+    // Fixed rather than read from the environment: the portal name appears in
+    // page titles, mails and the panel headers and is the same everywhere.
+    'name' => 'trideskapp',
 
     /*
     |--------------------------------------------------------------------------

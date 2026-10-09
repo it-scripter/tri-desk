@@ -305,6 +305,6 @@ class HistoricEditionSeeder extends Seeder
             return null;
         }
 
-        return Carbon::createFromFormat('d.m.Y', $value)->startOfDay();
+        return Carbon::createFromFormat('d.m.Y', $value)?->startOfDay();
     }
 }

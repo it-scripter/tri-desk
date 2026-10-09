@@ -3,8 +3,10 @@
 namespace App\Filament\Shared;
 
 use App\Domain\Competition\Enums\Discipline;
+use App\Domain\Competition\Enums\EditionStatus;
 use App\Domain\Competition\Enums\RaceType;
 use App\Domain\Competition\Models\Edition;
+use App\Domain\Competition\Rules\EditableEdition;
 use Closure;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -13,6 +15,7 @@ use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 /**
@@ -38,9 +41,20 @@ class RaceSchema
                 ...($editionId === null ? [
                     Select::make('edition_id')
                         ->label(__('race.fields.edition'))
-                        ->relationship('edition', 'slug')
+                        ->relationship(
+                            'edition',
+                            'slug',
+                            // Closed editions are read only, so they are not
+                            // offered - and the rule below refuses them even
+                            // if one is sent anyway.
+                            fn (Builder $query): Builder => $query->whereNotIn('status', [
+                                EditionStatus::Archived->value,
+                                EditionStatus::Cancelled->value,
+                            ]),
+                        )
                         ->getOptionLabelFromRecordUsing(fn (Edition $record): string => $record->titleWithNumber())
                         ->required()
+                        ->rules([new EditableEdition])
                         ->searchable()
                         ->preload()
                         ->live(),
