@@ -1,8 +1,9 @@
 {{-- Consent of a parent or guardian (W-17), right below the birth date it
      depends on. Without JavaScript the block is always shown and the server
      decides; with it, the block appears only once the birth date makes the
-     person a minor on race day. It stays open where something was entered or
-     the server reported an error, so nothing filled in disappears. --}}
+     person a minor at the moment of registration. It stays open where
+     something was entered or the server reported an error, so nothing filled
+     in disappears. --}}
 @php
     $nameValue = old("{$prefix}.guardian_name", $draft->get("{$prefix}.guardian_name"));
     $consentValue = old("{$prefix}.guardian_consent", $draft->get("{$prefix}.guardian_consent"));

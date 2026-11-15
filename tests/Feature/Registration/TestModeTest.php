@@ -236,3 +236,10 @@ it('shows the test mark on the magic link page', function () {
 
     $this->get("{$this->base}/verwalten/{$token}")->assertSee('Testanmeldung');
 });
+
+it('judges minority at the moment under test in the form as well', function () {
+    startTest($this, '2027-04-15 10:00:00');
+    $this->post($this->base, ['race' => $this->race->id]);
+
+    $this->get("{$this->base}/personen")->assertSee('data-registration-date="2027-04-15"', false);
+});

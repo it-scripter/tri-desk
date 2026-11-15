@@ -9,6 +9,7 @@ use App\Domain\Competition\Enums\TeamClassification;
 use App\Integrations\Results\Models\WkMapping;
 use App\Models\User;
 use App\Support\Concerns\RecordsActivity;
+use Carbon\CarbonInterface;
 use Database\Factories\RaceFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\AsEnumCollection;
@@ -251,29 +252,25 @@ class Race extends Model
     }
 
     /**
-     * The date age and minority are judged on: the race day, else the first
-     * day of the edition. Null for an edition without a date.
+     * Whether someone registering at the given moment can be a minor (W-17),
+     * so the form knows whether to ask for a guardian.
+     *
+     * Age limits count by birth year, minority to the day of registration
+     * (see RegistrationService::isMinor). The youngest person the race
+     * admits was born on 31 December of the year the minimum age points to;
+     * if that person is not yet 18 at the moment of registration, minors can
+     * register. With registration opening early in the year, a minimum of 18
+     * still admits minors; opening in the year before, even 19 can.
      */
-    public function raceDate(): ?Carbon
-    {
-        return $this->editionDay->date ?? $this->edition->starts_on;
-    }
-
-    /**
-     * Whether a minor can start at all (W-17), so the form knows whether to
-     * ask for a guardian. Age limits count by birth year, minority to the
-     * day of the race (see RegistrationService::isMinor): with a minimum of
-     * 18 by birth year someone born late in the year is still 17 on race
-     * day. Only from 19 on is everyone of age - unless the race has no date,
-     * then minority falls back to the birth year as well.
-     */
-    public function admitsMinors(): bool
+    public function admitsMinors(CarbonInterface $at): bool
     {
         if ($this->min_age === null) {
             return true;
         }
 
-        return $this->raceDate() === null ? $this->min_age < 18 : $this->min_age < 19;
+        $youngest = Carbon::create($this->edition->year - $this->min_age, 12, 31);
+
+        return $youngest === null || $youngest->diffInYears($at) < 18;
     }
 
     public function hasDiscipline(Discipline $discipline): bool

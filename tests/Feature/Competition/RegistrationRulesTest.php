@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Competition\Data\RegistrationData;
 use App\Domain\Competition\Enums\Gender;
 use App\Domain\Competition\Exceptions\DuplicateRegistration;
 use App\Domain\Competition\Exceptions\RegistrationRejected;
@@ -7,6 +8,7 @@ use App\Domain\Competition\Models\AgeGroupScheme;
 use App\Domain\Competition\Models\PriceTier;
 use App\Domain\Competition\Models\Race;
 use App\Domain\Competition\Services\RegistrationService;
+use Carbon\CarbonImmutable;
 
 /**
  * Rules on the persons of a registration: duplicates (W-16), consent for
@@ -63,7 +65,7 @@ it('W-16: finds a duplicate within a relay', function () {
 it('W-17: requires guardian name and consent for a minor', function () {
     $race = openRace();
 
-    // Turns 18 on 28.06.2027, the day after the race: still a minor.
+    // 17 at registration on 01.03.2027.
     $this->service->register(registrationFor($race, [participant(birthDate: '2009-06-28')]));
 })->throws(RegistrationRejected::class, 'erziehungsberechtigten');
 
@@ -81,11 +83,35 @@ it('W-17: stores the consent with time and text version', function () {
         ->and($child->guardian_consent_version)->toBe(__('registration.guardian_consent.version'));
 });
 
-it('W-17: judges minority to the day of the race', function () {
+it('W-17: judges minority at the moment of registration, not on race day', function () {
     $race = openRace();
 
-    // Turns 18 on the race day itself: of age, no consent needed.
-    $registration = $this->service->register(registrationFor($race, [participant(birthDate: '2009-06-27')]))->registration;
+    // 17 at registration on 01.03.2027, 18 on race day 27.06.2027: the
+    // contract is made at registration, so the consent is needed.
+    expect(fn () => $this->service->register(registrationFor($race, [participant(birthDate: '2009-06-27')])))
+        ->toThrow(RegistrationRejected::class, 'erziehungsberechtigten');
+
+    // Turns 18 on the day of registration itself: of age.
+    $registration = $this->service->register(registrationFor($race, [participant('Lea', 'Mai', '2009-03-01')]))->registration;
+
+    expect($registration->participants->sole()->guardian_name)->toBeNull();
+});
+
+it('W-17: judges minority at the moment under test in the test mode', function () {
+    $race = openRace();
+
+    // 17 on 01.03.2027, but 18 at the moment under test.
+    $registration = $this->service->register(new RegistrationData(
+        race: $race,
+        contactFirstName: 'Erika',
+        contactLastName: 'Muster',
+        contactEmail: 'erika@example.org',
+        participants: [participant(birthDate: '2009-04-01')],
+        termsAccepted: true,
+        privacyAcknowledged: true,
+        at: CarbonImmutable::parse('2027-04-15 10:00'),
+        isTest: true,
+    ))->registration;
 
     expect($registration->participants->sole()->guardian_name)->toBeNull();
 });
@@ -136,19 +162,24 @@ it('W-05: asks a diverse starter for the scoring gender where the scheme scores 
         ->and($starter->ageGroup?->code)->toBe('W20');
 });
 
-it('W-17: knows whether a minor can start at all', function () {
+it('W-17: knows whether a minor can register at a given moment', function () {
     $race = openRace();
+    $march = CarbonImmutable::parse('2027-03-01');
 
-    expect($race->admitsMinors())->toBeTrue();
+    expect($race->admitsMinors($march))->toBeTrue();
 
+    // The youngest admitted person is born 31.12.2009 - 17 in March.
     $race->update(['min_age' => 18]);
-    expect($race->fresh()->admitsMinors())->toBeTrue();
+    expect($race->fresh()->admitsMinors($march))->toBeTrue();
 
+    // The youngest admitted person is born 31.12.2008 - 18 in March.
     $race->update(['min_age' => 19]);
-    expect($race->fresh()->admitsMinors())->toBeFalse();
+    expect($race->fresh()->admitsMinors($march))->toBeFalse();
 
-    // Without a date, minority falls back to the birth year as well.
-    $race->edition->update(['starts_on' => null, 'ends_on' => null]);
+    // Registration opening in December of the year before: 17 again.
+    expect($race->fresh()->admitsMinors(CarbonImmutable::parse('2026-12-01')))->toBeTrue();
+
+    // From 31.12.2027 on, a minimum of 18 admits only adults.
     $race->update(['min_age' => 18]);
-    expect($race->fresh()->admitsMinors())->toBeFalse();
+    expect($race->fresh()->admitsMinors(CarbonImmutable::parse('2027-12-31')))->toBeFalse();
 });

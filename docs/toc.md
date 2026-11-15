@@ -145,7 +145,7 @@ Anforderungen sind mit IDs versehen (W = Wettkampf), damit Claude Code und Tests
 | W-14 | Warteliste bei ausgebuchtem Wettbewerb, Nachrücken mit Zahlungsfrist | S |
 | W-15 | Bestätigungsmail mit Magic-Link zur Selbstverwaltung (Daten ändern, Ummelden auf andere Person/Wettbewerb, Stornieren) | M |
 | W-16 | Dublettenprüfung (Name + Geburtsdatum + Wettbewerb) | S |
-| W-17 | Minderjährige: Einverständnis Erziehungsberechtigter erfassen | M |
+| W-17 | Minderjährige: Einverständnis Erziehungsberechtigter erfassen. Maßgeblich ist das Alter bei der Anmeldung (Vertragsschluss, §§ 106 ff. BGB), nicht am Wettkampftag: Wer bei der Anmeldung noch nicht 18 ist, braucht das Einverständnis auch dann, wenn er am Wettkampftag volljährig ist. Ob der Verband für die Teilnahme selbst weitere Nachweise verlangt (z. B. Unterschrift vor Ort), klärt der Veranstalter. | M |
 | W-18 | Wertung von Staffeln und Teams automatisch aus den Mitgliedern bestimmen (Regeln siehe unten) | M |
 
 **Wertung von Staffeln und Teams (W-18)**

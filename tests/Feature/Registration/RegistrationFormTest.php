@@ -307,16 +307,17 @@ it('asks for a guardian only where a minor can start', function (?int $minAge, b
         : $page->assertDontSee('Nur für Minderjährige');
 })->with([
     'no minimum age' => [null, true],
-    // 18 by birth year: born late in 2009, still 17 on 27.06.2027.
+    // 18 by birth year: born late in 2009, still 17 when registering on
+    // 01.03.2027.
     'from 18 by birth year' => [18, true],
     'from 19 by birth year' => [19, false],
 ]);
 
-it('gives the script the race date to judge minority by', function () {
+it('gives the script the date of registration to judge minority by', function () {
     $this->post($this->base, ['race' => $this->race->id]);
 
     $this->get("{$this->base}/personen")
-        ->assertSee('data-race-date="2027-06-27"', false)
+        ->assertSee('data-registration-date="2027-03-01"', false)
         ->assertSee('data-guardian="field-participants-0-birth_date"', false);
 });
 

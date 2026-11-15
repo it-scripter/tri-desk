@@ -34,7 +34,8 @@ use Illuminate\Support\Str;
  * Rules checked before anything is stored:
  * - registration window, price tier and race visibility
  * - team size (W-12), allowed gender (W-05), age limits by birth year
- * - consent of a parent or guardian for minors, judged to the day (W-17)
+ * - consent of a parent or guardian for minors, judged to the day of
+ *   registration (W-17)
  * - classification of relays and teams (W-18)
  * - duplicates by name and birth date (W-16)
  */
@@ -53,9 +54,9 @@ class RegistrationService
     {
         $race = $data->race->loadMissing(['edition', 'editionDay', 'ageGroupScheme.ageGroups', 'fields']);
 
-        // Two clocks: the rules (window, price tier) are judged at the moment
-        // of the data, which the test mode may set; places, the payment
-        // window and consent times always run on the real clock.
+        // Two clocks: the rules (window, price tier, minority) are judged at
+        // the moment of the data, which the test mode may set; places, the
+        // payment window and consent times always run on the real clock.
         $now = CarbonImmutable::now();
         $at = $data->at ?? $now;
 
@@ -71,7 +72,7 @@ class RegistrationService
 
         $token = Str::random(48);
 
-        $registration = DB::transaction(function () use ($race, $data, $tier, $classification, $token, $now): Registration {
+        $registration = DB::transaction(function () use ($race, $data, $tier, $classification, $token, $now, $at): Registration {
             $this->reservePlace($race, $now);
             $this->reserveOptions($data->options, $now);
 
@@ -107,7 +108,7 @@ class RegistrationService
             ]);
 
             foreach ($data->participants as $position => $participant) {
-                $this->storeParticipant($registration, $race, $participant, $position, $now);
+                $this->storeParticipant($registration, $race, $participant, $position, $now, $at);
             }
 
             foreach ($data->options as $choice) {
@@ -142,7 +143,7 @@ class RegistrationService
         $this->assertTeamSize($race, $data->participants);
 
         foreach ($data->participants as $index => $participant) {
-            $this->assertParticipant($race, $participant, $index);
+            $this->assertParticipant($race, $participant, $index, $at);
             $this->assertFields($race, RaceFieldScope::Participant, $participant->extra, $index);
         }
 
@@ -153,15 +154,6 @@ class RegistrationService
         }
 
         $this->assertNoDuplicate($race, $data);
-    }
-
-    /**
-     * Whether the participant counts as a minor for the race (W-17). The form
-     * asks for the guardian only then.
-     */
-    public function isMinorFor(Race $race, ParticipantData $participant): bool
-    {
-        return $this->isMinor($race->loadMissing(['edition', 'editionDay']), $participant);
     }
 
     /**
@@ -310,7 +302,7 @@ class RegistrationService
     /**
      * @throws RegistrationRejected
      */
-    private function assertParticipant(Race $race, ParticipantData $participant, int $index): void
+    private function assertParticipant(Race $race, ParticipantData $participant, int $index, CarbonImmutable $at): void
     {
         if (! in_array($participant->gender, $race->allowedGenders(), true)) {
             throw new RegistrationRejected('gender_not_allowed', $index);
@@ -333,25 +325,22 @@ class RegistrationService
             throw new RegistrationRejected('too_old', $index, ['age' => $race->max_age]);
         }
 
-        if ($this->isMinor($race, $participant)
+        if ($this->isMinor($participant, $at)
             && (blank($participant->guardianName) || ! $participant->guardianConsent)) {
             throw new RegistrationRejected('guardian_required', $index);
         }
     }
 
     /**
-     * Minority is a legal question and judged to the day: under 18 on the
-     * race day (W-17). Without a known date the birth year decides.
+     * Minority is a legal question and judged to the day, at the moment of
+     * registration (W-17): that is when the contract is made, and a minor
+     * needs the consent of a guardian for it (§§ 106 ff. BGB) - even when
+     * of age by race day. Whoever is a minor on race day was one at
+     * registration too, so this one moment covers both.
      */
-    private function isMinor(Race $race, ParticipantData $participant): bool
+    private function isMinor(ParticipantData $participant, CarbonImmutable $at): bool
     {
-        $raceDate = $race->raceDate();
-
-        if ($raceDate === null) {
-            return $this->ageGroups->ageInYear($participant->birthDate->year, $race->edition->year) < 18;
-        }
-
-        return $participant->birthDate->diffInYears(CarbonImmutable::instance($raceDate)) < 18;
+        return $participant->birthDate->diffInYears($at) < 18;
     }
 
     /**
@@ -537,8 +526,9 @@ class RegistrationService
         ParticipantData $participant,
         int $position,
         CarbonImmutable $now,
+        CarbonImmutable $at,
     ): void {
-        $minor = $this->isMinor($race, $participant);
+        $minor = $this->isMinor($participant, $at);
 
         // Relays and teams have no age groups (W-18); single starters get
         // theirs from the scheme of the race.

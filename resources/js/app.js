@@ -10,12 +10,14 @@ if (summary instanceof HTMLElement) {
 }
 
 // Guardian consent (W-17): the block is shown only once the birth date makes
-// the person a minor on race day. Same rule as the server - of age from the
-// 18th birthday on the race day; without a race date by birth year. The
-// server still decides; this only keeps the form short for adults.
-const registrationForm = document.querySelector('form[data-race-date], form[data-race-year]');
+// the person a minor at the moment of registration - that is when the
+// contract is made. Same rule as the server: of age from the 18th birthday
+// on. The server still decides; this only keeps the form short for adults.
+const registrationForm = document.querySelector('form[data-registration-date]');
 
 if (registrationForm instanceof HTMLFormElement) {
+    const registeredOn = registrationForm.dataset.registrationDate ?? '';
+
     registrationForm.querySelectorAll('[data-guardian]').forEach((block) => {
         const input = document.getElementById(block.dataset.guardian);
         const notice = registrationForm.querySelector(`[data-guardian-notice="${block.dataset.guardian}"]`);
@@ -25,7 +27,7 @@ if (registrationForm instanceof HTMLFormElement) {
         }
 
         const update = () => {
-            const minor = isMinor(input.value, registrationForm.dataset);
+            const minor = isMinor(input.value, registeredOn);
 
             // Kept open where something was entered or the server reported
             // an error, so nothing filled in disappears.
@@ -44,25 +46,20 @@ if (registrationForm instanceof HTMLFormElement) {
 
 /**
  * @param {string} birthDate as sent by a date input, YYYY-MM-DD
- * @param {DOMStringMap} race data-race-date or data-race-year of the form
- * @returns {boolean} false as long as the date is incomplete
+ * @param {string} on the day of registration, YYYY-MM-DD
+ * @returns {boolean} false as long as a date is incomplete
  */
-function isMinor(birthDate, race) {
+function isMinor(birthDate, on) {
     const birth = /^(\d{4})-(\d{2})-(\d{2})$/.exec(birthDate);
+    const day = /^(\d{4})-(\d{2})-(\d{2})$/.exec(on);
 
-    if (birth === null) {
+    if (birth === null || day === null) {
         return false;
     }
 
-    const [year, month, day] = birth.slice(1).map(Number);
+    const [year, month, date] = birth.slice(1).map(Number);
+    const [onYear, onMonth, onDate] = day.slice(1).map(Number);
+    const birthdayPassed = onMonth > month || (onMonth === month && onDate >= date);
 
-    if (race.raceDate === undefined) {
-        return Number(race.raceYear) - year < 18;
-    }
-
-    const [raceYear, raceMonth, raceDay] = race.raceDate.split('-').map(Number);
-    const birthdayPassed = raceMonth > month || (raceMonth === month && raceDay >= day);
-    const age = raceYear - year - (birthdayPassed ? 0 : 1);
-
-    return age < 18;
+    return onYear - year - (birthdayPassed ? 0 : 1) < 18;
 }

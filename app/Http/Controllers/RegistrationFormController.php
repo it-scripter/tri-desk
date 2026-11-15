@@ -120,6 +120,8 @@ class RegistrationFormController extends Controller
             'participantFields' => $race->fields->where('scope', RaceFieldScope::Participant)->values(),
             'registrationFields' => $race->fields->where('scope', RaceFieldScope::Registration)->values(),
             'hasOptions' => RaceOption::query()->offeredFor($race)->exists(),
+            // Minority is judged at the moment of registration (W-17).
+            'registeredAt' => $this->at($request),
         ]);
     }
 

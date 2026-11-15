@@ -8,11 +8,11 @@
     @include('registration.partials.steps', ['current' => 'people', 'hasOptions' => $hasOptions])
     @include('registration.partials.errors')
 
-    {{-- The race date lets the script show the guardian block only for
-         minors (W-17); without a date it judges by birth year, like the
-         server does. --}}
+    {{-- The date of registration lets the script show the guardian block
+         only for minors (W-17), judged like the server does: at the moment
+         of registration, which the test mode may set. --}}
     <form class="form" method="post" action="{{ route('competition.registration.people.store') }}" novalidate
-        @if ($race->raceDate()) data-race-date="{{ $race->raceDate()->format('Y-m-d') }}" @else data-race-year="{{ $race->edition->year }}" @endif>
+        data-registration-date="{{ $registeredAt->format('Y-m-d') }}">
         @csrf
 
         {{-- Honeypot: hidden from people and assistive technology alike;
@@ -79,7 +79,7 @@
                     'value' => old("{$prefix}.birth_date", $draft->get("{$prefix}.birth_date")), 'required' => $mandatory, 'autocomplete' => $i === 0 ? 'bday' : null,
                 ])
 
-                @if ($race->admitsMinors())
+                @if ($race->admitsMinors($registeredAt))
                     @include('registration.partials.guardian', ['index' => $i, 'prefix' => $prefix, 'draft' => $draft])
                 @endif
                 @include('registration.partials.field', [
