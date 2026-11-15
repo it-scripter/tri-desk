@@ -23,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property Gender $gender
  * @property Gender|null $scored_as
  * @property int|null $age_group_id
+ * @property array<string, mixed>|null $extra
  * @property string|null $guardian_name
  * @property Carbon|null $guardian_consented_at
  * @property string|null $guardian_consent_version
@@ -43,6 +44,7 @@ class RegistrationParticipant extends Model
         'gender',
         'scored_as',
         'age_group_id',
+        'extra',
         'guardian_name',
         'guardian_consented_at',
         'guardian_consent_version',
@@ -58,6 +60,7 @@ class RegistrationParticipant extends Model
             'birth_date' => 'date',
             'gender' => Gender::class,
             'scored_as' => Gender::class,
+            'extra' => 'array',
             'guardian_consented_at' => 'datetime',
         ];
     }

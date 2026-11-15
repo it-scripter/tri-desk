@@ -16,6 +16,10 @@ final readonly class RegistrationData
      * @param  bool  $byOrga  entered by the orga team: late entry tiers apply,
      *                        the registration window does not
      * @param  bool  $allowDuplicate  the orga team confirmed a duplicate warning
+     * @param  array<string, mixed>  $extra  answers to per-registration fields (W-11)
+     * @param  bool  $termsAccepted  terms of participation, incl. photo and video (W-10)
+     * @param  bool  $privacyAcknowledged  privacy notice (W-10)
+     * @param  bool  $hideNameInLists  objection to the name in public lists (4.4)
      */
     public function __construct(
         public Race $race,
@@ -27,5 +31,9 @@ final readonly class RegistrationData
         public ?string $teamName = null,
         public bool $byOrga = false,
         public bool $allowDuplicate = false,
+        public array $extra = [],
+        public bool $termsAccepted = false,
+        public bool $privacyAcknowledged = false,
+        public bool $hideNameInLists = false,
     ) {}
 }

@@ -19,5 +19,7 @@ final readonly class ParticipantData
         public ?Gender $scoredAs = null,
         public ?string $guardianName = null,
         public bool $guardianConsent = false,
+        /** @var array<string, mixed> answers to per-person fields (W-11) */
+        public array $extra = [],
     ) {}
 }

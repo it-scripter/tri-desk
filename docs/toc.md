@@ -193,6 +193,15 @@ Die Regeln gelten für Staffeln und Teams gleichermaßen.
 | W-36 | Persönliche Ergebnisseite mit Urkunden-Download | S |
 | W-37 | Historische Ergebnisse (27.520 Einträge in 98 Wettbewerben seit 1989) einmalig ins Portal übernehmen und als Ergebnisarchiv je Wettkampf und Jahr anzeigen; Suche nach Name und Verein | S |
 
+**Name in öffentlichen Listen (W-31, W-34; festgelegt am 15.11.2026):**
+
+- Standard: Der Name erscheint in der öffentlichen Starter- und Ergebnisliste.
+- Widerspruch: Im Anmeldeformular lässt sich per Häkchen (nicht vorbelegt) widersprechen. Die Wahl gilt für Starter- und Ergebnisliste gleichermaßen und wird an der Anmeldung gespeichert (`hide_name_in_lists`).
+- Staffeln und Teams: Die Wahl gilt einheitlich für alle Mitglieder. Der Teamname ist immer öffentlich.
+- Ausnahme: Die Plätze 1 bis 3 einer Altersklasse oder einer Gesamtwertung werden immer mit Namen veröffentlicht; ein Widerspruch greift dort nicht. Das Formular weist darauf hin.
+- Foto- und Videoaufnahmen sind Teil der Teilnahmebedingungen und werden nicht gesondert abgefragt.
+- Wie eine Zeile ohne Namen in den Listen dargestellt wird, wird mit Phase 6 festgelegt.
+
 **Bestehende Ergebnis-Datenbank (Tabelle `Alle`):** eine flache Tabelle für alle Jahre und Wettbewerbe, MyISAM, latin1 mit einzelnen utf8mb4-Spalten. Felder: Platz, AK, AKPl, StNr, Name, Verein, je Disziplin Platz und Zeit (Swim, Bike, Kanu, Run), Total, Entw, wk.
 
 - **Synchronisation statt Live-Zugriff:** Ein Job liest neue oder geänderte Zeilen und schreibt sie normalisiert ins Portal (Ergebnis an Wettbewerb und Ausgabe, Splits je Disziplin). Die Quelle steckt hinter einer Schnittstelle (`ResultSource`), damit später ein Direktimport sie ohne Umbau ersetzen kann.

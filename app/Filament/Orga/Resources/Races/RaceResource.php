@@ -9,6 +9,7 @@ use App\Filament\Orga\Resources\Races\Pages\ListRaces;
 use App\Filament\Orga\Resources\Races\Tables\RacesTable;
 use App\Filament\Shared\RaceSchema;
 use App\Filament\Shared\RelationManagers\PriceTiersRelationManager;
+use App\Filament\Shared\RelationManagers\RaceFieldsRelationManager;
 use App\Models\User;
 use BackedEnum;
 use Filament\Facades\Filament;
@@ -75,6 +76,7 @@ class RaceResource extends Resource
     {
         return [
             PriceTiersRelationManager::class,
+            RaceFieldsRelationManager::class,
         ];
     }
 

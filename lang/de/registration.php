@@ -72,6 +72,8 @@ return [
         'duplicate' => ':name ist für diesen Wettbewerb bereits angemeldet. Änderungen sind über den Link in der Bestätigungsmail möglich.',
         'sold_out' => 'Der Wettbewerb ist ausgebucht.',
         'option_sold_out' => ':option ist ausverkauft.',
+        'consent_required' => 'Bitte die Teilnahmebedingungen akzeptieren und den Datenschutzhinweis bestätigen.',
+        'field_required' => 'Bitte „:field“ ausfüllen.',
         'not_reserved' => 'Die Anmeldung ist nicht mehr reserviert und kann nicht bestätigt werden.',
     ],
 

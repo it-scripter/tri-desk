@@ -7,6 +7,7 @@ use App\Domain\Competition\Models\CancellationRule;
 use App\Domain\Competition\Models\Edition;
 use App\Domain\Competition\Models\PriceTier;
 use App\Domain\Competition\Models\Race;
+use App\Domain\Competition\Models\RaceField;
 use App\Domain\Competition\Models\RaceOption;
 use App\Domain\Competition\Models\RaceOptionVariant;
 use App\Models\User;
@@ -17,7 +18,8 @@ use Spatie\Activitylog\Support\ActivityLogStatus;
 
 /**
  * Copies an edition from a previous year (specification W-01, B-01): race
- * days, races, price tiers, options and cancellation rules. Org units, posts,
+ * days, races with their additional fields, price tiers, options and
+ * cancellation rules. Org units, posts,
  * texts and export profiles join here once they exist (phases 3, 4, 7).
  *
  * Every date moves by the distance between the old and the new race day, so
@@ -115,7 +117,7 @@ class EditionCopier
     {
         $ids = [];
 
-        foreach ($source->races()->with('priceTiers')->get() as $race) {
+        foreach ($source->races()->with(['priceTiers', 'fields'])->get() as $race) {
             /** @var Race $new */
             $new = $race->replicate(['edition_id', 'edition_day_id']);
             $new->edition_id = $copy->id;
@@ -129,6 +131,13 @@ class EditionCopier
                 $newTier->valid_from = $shift($tier->valid_from);
                 $newTier->valid_until = $shift($tier->valid_until);
                 $newTier->save();
+            }
+
+            foreach ($race->fields as $field) {
+                /** @var RaceField $newField */
+                $newField = $field->replicate(['race_id']);
+                $newField->race_id = $new->id;
+                $newField->save();
             }
 
             $ids[$race->id] = $new->id;

@@ -35,6 +35,9 @@ pest()->extend(TestCase::class)
 |
 */
 
+/**
+ * @param  array<string, mixed>  $extra
+ */
 function participant(
     string $first = 'Erika',
     string $last = 'Muster',
@@ -43,6 +46,7 @@ function participant(
     ?string $scoredAs = null,
     ?string $guardian = null,
     bool $consent = false,
+    array $extra = [],
 ): ParticipantData {
     return new ParticipantData(
         firstName: $first,
@@ -52,12 +56,14 @@ function participant(
         scoredAs: $scoredAs !== null ? Gender::from($scoredAs) : null,
         guardianName: $guardian,
         guardianConsent: $consent,
+        extra: $extra,
     );
 }
 
 /**
  * @param  array<int, ParticipantData>|null  $participants
  * @param  array<int, OptionChoice>  $options
+ * @param  array<string, mixed>  $extra
  */
 function registrationFor(
     Race $race,
@@ -66,6 +72,9 @@ function registrationFor(
     bool $byOrga = false,
     bool $allowDuplicate = false,
     ?string $teamName = null,
+    array $extra = [],
+    bool $consents = true,
+    bool $hideName = false,
 ): RegistrationData {
     return new RegistrationData(
         race: $race,
@@ -77,13 +86,18 @@ function registrationFor(
         teamName: $teamName,
         byOrga: $byOrga,
         allowDuplicate: $allowDuplicate,
+        extra: $extra,
+        termsAccepted: $consents,
+        privacyAcknowledged: $consents,
+        hideNameInLists: $hideName,
     );
 }
 
 /**
  * An edition open for registration with one race and a price, as the
  * registration tests need it. Registration is open from 15.02.2027, the
- * race day is 27.06.2027; tests travel to 01.03.2027.
+ * race day is 27.06.2027; tests travel to 01.03.2027. The edition is the
+ * current one of its competition, so the public form finds it.
  *
  * @param  array<string, mixed>  $race
  */
@@ -97,6 +111,7 @@ function openRace(array $race = [], int $amountCents = 4500): Race
         'registration_opens_at' => '2027-02-15 10:00:00',
         'registration_closes_at' => '2027-06-20 23:59:00',
         'payment_window_hours' => 48,
+        'is_current' => true,
     ]);
 
     $model = Race::factory()->for($edition)->create($race);

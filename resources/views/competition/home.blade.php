@@ -15,6 +15,10 @@
             @endif
         </p>
 
+        @if ($edition->status->isClosed() === false && $edition->registration_opens_at?->isPast() && ! $edition->registration_closes_at?->isPast())
+            <p><a class="button" href="{{ route('competition.registration.race') }}">Zur Anmeldung</a></p>
+        @endif
+
         @if ($edition->races->isEmpty())
             <p class="notice">Die Wettbewerbe dieser Ausgabe stehen noch nicht fest.</p>
         @else

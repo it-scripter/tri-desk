@@ -34,6 +34,12 @@ use Illuminate\Support\Carbon;
  * @property string $contact_email
  * @property string|null $team_name
  * @property TeamClassification|null $team_classification
+ * @property array<string, mixed>|null $extra
+ * @property bool $hide_name_in_lists
+ * @property Carbon|null $terms_accepted_at
+ * @property string|null $terms_version
+ * @property Carbon|null $privacy_acknowledged_at
+ * @property string|null $privacy_version
  * @property string|null $token_hash
  * @property int|null $user_id
  * @property bool $entered_by_orga
@@ -61,6 +67,12 @@ class Registration extends Model
         'contact_email',
         'team_name',
         'team_classification',
+        'extra',
+        'hide_name_in_lists',
+        'terms_accepted_at',
+        'terms_version',
+        'privacy_acknowledged_at',
+        'privacy_version',
         'token_hash',
         'user_id',
         'entered_by_orga',
@@ -85,6 +97,10 @@ class Registration extends Model
             'confirmed_at' => 'datetime',
             'cancelled_at' => 'datetime',
             'team_classification' => TeamClassification::class,
+            'extra' => 'array',
+            'hide_name_in_lists' => 'boolean',
+            'terms_accepted_at' => 'datetime',
+            'privacy_acknowledged_at' => 'datetime',
             'entered_by_orga' => 'boolean',
         ];
     }
@@ -108,6 +124,11 @@ class Registration extends Model
             'cancelled_at',
             'team_name',
             'team_classification',
+            'hide_name_in_lists',
+            'terms_accepted_at',
+            'terms_version',
+            'privacy_acknowledged_at',
+            'privacy_version',
             'entered_by_orga',
         ];
     }

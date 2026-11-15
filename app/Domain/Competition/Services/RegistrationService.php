@@ -8,6 +8,7 @@ use App\Domain\Competition\Data\RegistrationData;
 use App\Domain\Competition\Data\RegistrationResult;
 use App\Domain\Competition\Enums\DiverseScoring;
 use App\Domain\Competition\Enums\Gender;
+use App\Domain\Competition\Enums\RaceFieldScope;
 use App\Domain\Competition\Enums\RegistrationStatus;
 use App\Domain\Competition\Exceptions\DuplicateRegistration;
 use App\Domain\Competition\Exceptions\RegistrationRejected;
@@ -50,23 +51,18 @@ class RegistrationService
      */
     public function register(RegistrationData $data): RegistrationResult
     {
-        $race = $data->race->loadMissing(['edition', 'editionDay', 'ageGroupScheme.ageGroups']);
+        $race = $data->race->loadMissing(['edition', 'editionDay', 'ageGroupScheme.ageGroups', 'fields']);
         $now = CarbonImmutable::now();
 
-        $this->assertOpen($race, $data->byOrga, $now);
+        $this->precheck($data);
         $tier = $this->tier($race, $data->byOrga, $now);
-        $this->assertTeamSize($race, $data->participants);
-
-        foreach ($data->participants as $index => $participant) {
-            $this->assertParticipant($race, $participant, $index);
-        }
 
         $classification = $race->isTeamRace()
             ? $this->classifier->classify($race, $data->participants)
             : null;
 
-        $this->assertOptions($race, $data->options);
-        $this->assertNoDuplicate($race, $data);
+        $this->checkOptions($race, $data->options);
+        $this->assertConsents($data);
 
         $token = Str::random(48);
 
@@ -94,6 +90,12 @@ class RegistrationService
                 'contact_email' => $data->contactEmail,
                 'team_name' => $race->isTeamRace() ? $data->teamName : null,
                 'team_classification' => $classification,
+                'extra' => $this->answers($race, RaceFieldScope::Registration, $data->extra),
+                'hide_name_in_lists' => $data->hideNameInLists,
+                'terms_accepted_at' => $data->termsAccepted ? $now : null,
+                'terms_version' => $data->termsAccepted ? __('registration_form.consents.terms.version') : null,
+                'privacy_acknowledged_at' => $data->privacyAcknowledged ? $now : null,
+                'privacy_version' => $data->privacyAcknowledged ? __('registration_form.consents.privacy.version') : null,
                 'token_hash' => hash('sha256', $token),
                 'entered_by_orga' => $data->byOrga,
             ]);
@@ -115,6 +117,55 @@ class RegistrationService
         });
 
         return new RegistrationResult($registration, $token);
+    }
+
+    /**
+     * Every rule on race and persons, without options, consents or storing
+     * anything. The form runs it after the person step, so problems show up
+     * where they were made instead of at the very end.
+     *
+     * @throws RegistrationRejected
+     */
+    public function precheck(RegistrationData $data): void
+    {
+        $race = $data->race->loadMissing(['edition', 'editionDay', 'ageGroupScheme.ageGroups', 'fields']);
+        $now = CarbonImmutable::now();
+
+        $this->assertOpen($race, $data->byOrga, $now);
+        $this->tier($race, $data->byOrga, $now);
+        $this->assertTeamSize($race, $data->participants);
+
+        foreach ($data->participants as $index => $participant) {
+            $this->assertParticipant($race, $participant, $index);
+            $this->assertFields($race, RaceFieldScope::Participant, $participant->extra, $index);
+        }
+
+        $this->assertFields($race, RaceFieldScope::Registration, $data->extra);
+
+        if ($race->isTeamRace()) {
+            $this->classifier->classify($race, $data->participants);
+        }
+
+        $this->assertNoDuplicate($race, $data);
+    }
+
+    /**
+     * Whether the participant counts as a minor for the race (W-17). The form
+     * asks for the guardian only then.
+     */
+    public function isMinorFor(Race $race, ParticipantData $participant): bool
+    {
+        return $this->isMinor($race->loadMissing(['edition', 'editionDay']), $participant);
+    }
+
+    /**
+     * @param  array<int, OptionChoice>  $options
+     *
+     * @throws RegistrationRejected
+     */
+    public function checkOptions(Race $race, array $options): void
+    {
+        $this->assertOptions($race, $options);
     }
 
     /**
@@ -322,6 +373,63 @@ class RegistrationService
     }
 
     /**
+     * Terms and privacy notice are required in the public form (W-10). The
+     * orga team enters on behalf of people who agreed elsewhere, e.g. on
+     * paper at the late entry desk.
+     *
+     * @throws RegistrationRejected
+     */
+    private function assertConsents(RegistrationData $data): void
+    {
+        if ($data->byOrga) {
+            return;
+        }
+
+        if (! $data->termsAccepted || ! $data->privacyAcknowledged) {
+            throw new RegistrationRejected('consent_required');
+        }
+    }
+
+    /**
+     * Required additional fields must be answered (W-11). The form checks the
+     * types; this is the server side guard against a form that skipped them.
+     *
+     * @param  array<string, mixed>  $answers
+     *
+     * @throws RegistrationRejected
+     */
+    private function assertFields(Race $race, RaceFieldScope $scope, array $answers, ?int $index = null): void
+    {
+        foreach ($race->fields->where('scope', $scope) as $field) {
+            if ($field->is_required && blank($answers[$field->key] ?? null)) {
+                throw new RegistrationRejected('field_required', $index, ['field' => $field->label]);
+            }
+        }
+    }
+
+    /**
+     * Only answers to fields the race has are kept; anything else a form sent
+     * along is dropped. Empty answers are not stored.
+     *
+     * @param  array<string, mixed>  $answers
+     * @return array<string, mixed>|null
+     */
+    private function answers(Race $race, RaceFieldScope $scope, array $answers): ?array
+    {
+        $kept = [];
+
+        foreach ($race->fields->where('scope', $scope) as $field) {
+            $value = $answers[$field->key] ?? null;
+
+            if (filled($value)) {
+                $kept[$field->key] = is_string($value) ? trim($value) : $value;
+            }
+        }
+
+        return $kept === [] ? null : $kept;
+    }
+
+    /**
      * Same first name, last name and birth date in the same race (W-16).
      * The collation compares names without regard to case; cancelled and
      * expired registrations do not count.
@@ -441,6 +549,7 @@ class RegistrationService
             'gender' => $participant->gender,
             'scored_as' => $participant->gender === Gender::Diverse ? $participant->scoredAs : null,
             'age_group_id' => $ageGroup?->id,
+            'extra' => $this->answers($race, RaceFieldScope::Participant, $participant->extra),
             'guardian_name' => $minor ? $participant->guardianName : null,
             'guardian_consented_at' => $minor ? $now : null,
             'guardian_consent_version' => $minor ? __('registration.guardian_consent.version') : null,

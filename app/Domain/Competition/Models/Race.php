@@ -45,6 +45,7 @@ use Illuminate\Support\Collection;
  * @property-read Edition $edition
  * @property-read AgeGroupScheme|null $ageGroupScheme
  * @property-read EditionDay|null $editionDay
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, RaceField> $fields
  */
 class Race extends Model
 {
@@ -178,6 +179,14 @@ class Race extends Model
     public function restrictedOptions(): BelongsToMany
     {
         return $this->belongsToMany(RaceOption::class, 'race_option_race');
+    }
+
+    /**
+     * @return HasMany<RaceField, $this>
+     */
+    public function fields(): HasMany
+    {
+        return $this->hasMany(RaceField::class)->orderBy('sort');
     }
 
     /**
