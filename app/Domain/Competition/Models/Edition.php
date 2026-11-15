@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * One year of a competition (specification W-01) and the central reference
@@ -23,6 +24,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $display_name
  * @property string $slug
  * @property EditionStatus $status
+ * @property Carbon|null $starts_on
+ * @property Carbon|null $ends_on
+ * @property Carbon|null $registration_opens_at
+ * @property Carbon|null $registration_closes_at
+ * @property Carbon|null $transfer_deadline_at
  * @property bool $is_current
  * @property string|null $note
  * @property-read Competition $competition

@@ -29,6 +29,7 @@ class RoleSeeder extends Seeder
         'edition.create',
         'edition.update',
         'edition.delete',
+        'edition.copy',
         'race.viewAny',
         'race.view',
         'race.create',

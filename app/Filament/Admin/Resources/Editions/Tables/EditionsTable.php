@@ -3,6 +3,7 @@
 namespace App\Filament\Admin\Resources\Editions\Tables;
 
 use App\Domain\Competition\Enums\EditionStatus;
+use App\Filament\Admin\Resources\Editions\Actions\CopyEditionAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -71,6 +72,7 @@ class EditionsTable
             ])
             ->recordActions([
                 EditAction::make(),
+                CopyEditionAction::make(),
                 DeleteAction::make(),
             ])
             ->toolbarActions([

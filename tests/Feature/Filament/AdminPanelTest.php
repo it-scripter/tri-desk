@@ -126,3 +126,58 @@ it('keeps a race list for the edition', function () {
         ->assertCanSeeTableRecords($edition->races)
         ->assertSee('Schwimmen – Rad – Kanu – Lauf');
 });
+
+it('copies an edition through the action and opens the copy', function () {
+    $edition = Edition::factory()->create(['year' => 2027, 'number' => 38, 'slug' => '2027', 'starts_on' => '2027-06-27']);
+    Race::factory()->for($edition)->create(['slug' => 'volkstriathlon']);
+
+    livewire(EditEdition::class, ['record' => $edition->getRouteKey()])
+        ->assertActionVisible('copy')
+        ->callAction('copy', [
+            'year' => 2028,
+            'number' => 39,
+            'slug' => '2028',
+            'starts_on' => '2028-06-25',
+        ])
+        ->assertHasNoActionErrors();
+
+    $copy = Edition::query()->where('slug', '2028')->sole();
+
+    expect($copy->races()->where('slug', 'volkstriathlon')->exists())->toBeTrue()
+        ->and($copy->starts_on->format('Y-m-d'))->toBe('2028-06-25');
+});
+
+it('prefills the copy with the following year', function () {
+    $edition = Edition::factory()->create(['year' => 2027, 'number' => 38, 'slug' => '2027', 'starts_on' => '2027-06-27']);
+
+    livewire(EditEdition::class, ['record' => $edition->getRouteKey()])
+        ->mountAction('copy')
+        ->assertSchemaStateSet([
+            'year' => 2028,
+            'number' => 39,
+            'slug' => '2028',
+            'starts_on' => '2028-06-25',
+        ]);
+});
+
+it('refuses a slug the competition already uses', function () {
+    $edition = Edition::factory()->create(['year' => 2027, 'slug' => '2027']);
+    Edition::factory()->for($edition->competition)->create(['year' => 2028, 'slug' => '2028']);
+
+    livewire(EditEdition::class, ['record' => $edition->getRouteKey()])
+        ->callAction('copy', ['year' => 2028, 'slug' => '2028'])
+        ->assertHasActionErrors(['slug']);
+
+    expect(Edition::query()->where('slug', '2028')->count())->toBe(1);
+});
+
+it('does not offer copying to an orga member', function () {
+    $edition = Edition::factory()->create(['year' => 2027, 'slug' => '2027']);
+    $orga = User::factory()->create();
+    $orga->assignRoleFor(RoleName::Orga, $edition);
+
+    // The orga panel has no copy action, and the admin panel is closed to
+    // the role altogether.
+    $this->actingAs($orga)->get("/admin/editions/{$edition->id}/edit")->assertForbidden();
+    expect($orga->can('copy', $edition))->toBeFalse();
+});

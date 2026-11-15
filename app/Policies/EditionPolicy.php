@@ -41,6 +41,16 @@ class EditionPolicy
         return $user->hasPermissionFor('edition.update', $edition);
     }
 
+    /**
+     * Copying a previous year is the organiser's job (specification 6.2,
+     * W-01). The source may well be archived - last year's edition usually
+     * is - so a closed edition is no reason to refuse.
+     */
+    public function copy(User $user, Edition $edition): bool
+    {
+        return $user->hasPermissionFor('edition.copy', $edition);
+    }
+
     public function delete(User $user, Edition $edition): bool
     {
         return $user->hasPermissionFor('edition.delete', $edition);

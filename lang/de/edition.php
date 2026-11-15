@@ -38,6 +38,15 @@ return [
         'not_editable' => 'Diese Ausgabe ist abgeschlossen und kann nicht mehr bearbeitet werden.',
     ],
 
+    'copy' => [
+        'action' => 'Ausgabe kopieren',
+        'heading' => ':source als Vorlage kopieren',
+        'description' => 'Übernommen werden Wettkampftage, Wettbewerbe, Preisstufen, Zusatzoptionen und Stornoregeln. Alle Termine verschieben sich um den Abstand zum neuen Wettkampftag. Die neue Ausgabe startet als „Geplant“.',
+        'starts_on' => 'Neuer Wettkampftag',
+        'starts_on_hint' => 'Erster Tag der neuen Ausgabe. Hat die Vorlage kein Datum, bleiben alle Termine der Kopie leer.',
+        'success' => 'Ausgabe :edition angelegt.',
+    ],
+
     'day' => [
         'label' => 'Wettkampftag',
         'plural_label' => 'Wettkampftage',
