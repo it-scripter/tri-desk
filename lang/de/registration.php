@@ -48,10 +48,7 @@ return [
 
     'test' => [
         'action' => 'Anmeldung testen',
-        'heading' => 'Anmeldeformular testen',
-        'description' => 'Öffnet das öffentliche Anmeldeformular für diese Ausgabe im Testmodus. Testanmeldungen werden gespeichert und per Mail bestätigt (Betreff mit [TEST]), belegen aber keinen Platz und lassen sich in der Anmeldeliste löschen.',
-        'at' => 'Testzeitpunkt',
-        'at_hint' => 'Das Formular verhält sich so, als wäre es dieser Zeitpunkt: Preisstufe, Anmeldezeitraum und Fristen richten sich danach.',
+        'description' => 'Öffnet das öffentliche Anmeldeformular dieser Ausgabe im Testmodus in einem neuen Tab. Testanmeldungen werden gespeichert und per Mail bestätigt (Betreff mit [TEST]), belegen aber keinen Platz und lassen sich in der Anmeldeliste löschen.',
     ],
 
     // Version of the consent text below. Raise it whenever the text

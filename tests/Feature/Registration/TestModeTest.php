@@ -13,6 +13,7 @@ use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 
 use function Pest\Livewire\livewire;
 
@@ -61,14 +62,27 @@ it('keeps the form closed before registration opens without the test mode', func
         ->assertSee('zurzeit keine Anmeldung möglich');
 });
 
-it('starts the test mode from the orga panel and opens the form', function () {
+it('opens the test from the orga panel in a new tab', function () {
     $this->actingAs($this->orga);
     Filament::setCurrentPanel('orga');
 
     livewire(EditEdition::class, ['record' => $this->edition->getRouteKey()])
         ->assertActionVisible('testRegistration')
-        ->callAction('testRegistration', ['at' => '2027-02-15 10:00'])
-        ->assertRedirect(route('competition.registration.race', ['competition' => $this->slug]));
+        ->assertActionShouldOpenUrlInNewTab('testRegistration')
+        ->assertActionHasUrl('testRegistration', URL::temporarySignedRoute(
+            'competition.registration.test.start',
+            now()->addHours(12),
+            ['competition' => $this->slug, 'edition' => $this->edition->id],
+        ));
+});
+
+it('starts the test at the registration start and opens the form', function () {
+    $link = URL::temporarySignedRoute('competition.registration.test.start', now()->addHour(), [
+        'competition' => $this->slug,
+        'edition' => $this->edition->id,
+    ]);
+
+    $this->actingAs($this->orga)->get($link)->assertRedirect($this->base);
 
     $this->get($this->base)
         ->assertSuccessful()
@@ -77,10 +91,42 @@ it('starts the test mode from the orga panel and opens the form', function () {
         ->assertSee('35,00');
 });
 
+it('refuses a start link without signature, sign-in or permission', function () {
+    $start = "{$this->base}/test/starten/{$this->edition->id}";
+    $signed = URL::temporarySignedRoute('competition.registration.test.start', now()->addHour(), [
+        'competition' => $this->slug,
+        'edition' => $this->edition->id,
+    ]);
+
+    $this->actingAs($this->orga)->get($start)->assertForbidden();
+
+    auth()->logout();
+    $this->get($signed)->assertNotFound();
+
+    $stranger = User::factory()->create();
+    $this->actingAs($stranger)->get($signed)->assertForbidden();
+
+    $this->get($this->base)->assertDontSee('Testmodus');
+});
+
 it('prices by the moment under test', function () {
     startTest($this, '2027-04-15 10:00:00');
 
     $this->get($this->base)->assertSee('45,00');
+});
+
+it('moves the moment under test from the banner', function () {
+    startTest($this);
+
+    $this->get($this->base)->assertSee('35,00');
+
+    $this->from($this->base)
+        ->post("{$this->base}/test/zeitpunkt", ['at' => '2027-04-15T10:00'])
+        ->assertRedirect($this->base);
+
+    $this->get($this->base)
+        ->assertSee('15.04.2027, 10:00')
+        ->assertSee('45,00');
 });
 
 it('stores a marked test registration and mails it with [TEST]', function () {
@@ -117,6 +163,9 @@ it('ends the test mode on request', function () {
     startTest($this);
 
     $this->post("{$this->base}/test/beenden")->assertRedirect("/{$this->slug}");
+
+    // Started in a new tab, so the page only says the tab may be closed.
+    $this->get("/{$this->slug}")->assertSee('Testmodus beendet. Dieser Tab kann geschlossen werden.');
 
     $this->get($this->base)->assertDontSee('Testmodus')->assertSee('zurzeit keine Anmeldung möglich');
 });

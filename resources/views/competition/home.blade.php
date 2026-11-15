@@ -7,6 +7,10 @@
 @section('subheading', $edition ? $edition->titleWithNumber() : __('competition.home.no_edition'))
 
 @section('content')
+    @if (session('status'))
+        <div class="alert alert--success" role="status"><p>{{ session('status') }}</p></div>
+    @endif
+
     @if (! $edition)
         <p class="notice">{{ __('competition.home.no_edition_published') }}</p>
     @else

@@ -105,6 +105,9 @@ return [
     'test' => [
         'banner' => 'Testmodus: Die Anmeldung läuft so, als wäre es :date. Anmeldungen werden als Test gespeichert und belegen keinen Platz.',
         'end' => 'Testmodus beenden',
+        'at' => 'Testzeitpunkt',
+        'move' => 'Übernehmen',
+        'ended' => 'Testmodus beendet. Dieser Tab kann geschlossen werden.',
         'mail' => 'TEST – Diese Anmeldung wurde im Testmodus angelegt und ist keine echte Anmeldung.',
         'badge' => 'Testanmeldung',
     ],

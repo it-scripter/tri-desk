@@ -364,3 +364,25 @@ a {
         font-weight: 600;
     }
 }
+
+.test-banner__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem var(--spacing);
+    align-items: flex-end;
+}
+
+.test-banner__move {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+
+    label {
+        font-weight: 600;
+    }
+
+    .field__input {
+        width: auto;
+    }
+}

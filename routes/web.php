@@ -3,6 +3,7 @@
 use App\Domain\Competition\Models\Competition;
 use App\Http\Controllers\ManageRegistrationController;
 use App\Http\Controllers\RegistrationFormController;
+use App\Http\Controllers\RegistrationTestController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -56,7 +57,17 @@ Route::prefix('{competition}')
                 Route::get('pruefen', 'summary')->name('summary');
                 Route::post('pruefen', 'submit')->middleware('throttle:registration')->name('submit');
                 Route::get('eingegangen', 'done')->name('done');
-                Route::post('test/beenden', 'endTest')->name('test.end');
+            });
+
+        // Test mode of the form, started from the orga panel in a new tab.
+        Route::controller(RegistrationTestController::class)
+            ->prefix('anmeldung/test')
+            ->name('registration.test.')
+            ->middleware('registration.test')
+            ->group(function (): void {
+                Route::get('starten/{edition}', 'start')->middleware('signed')->whereNumber('edition')->name('start');
+                Route::post('zeitpunkt', 'move')->name('move');
+                Route::post('beenden', 'end')->name('end');
             });
 
         // Magic link of the confirmation mail (W-15).

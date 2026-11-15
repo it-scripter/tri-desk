@@ -16,8 +16,8 @@ use Illuminate\Support\Facades\Gate;
  * form through before registration opens, at a moment of its choice, for an
  * edition that need not be the current one yet.
  *
- * It is started from the orga panel and lives in the session the panel and
- * the public pages share. On every request it is checked again: the person
+ * It is started from the orga panel in a new tab and lives in the session
+ * the panel and the public pages share. On every request it is checked again: the person
  * must still be signed in and still allowed to manage the registrations of
  * that edition - otherwise the test mode ends silently.
  */
@@ -41,6 +41,19 @@ final readonly class RegistrationTestMode
         // A draft of the real form must not be continued as a test, nor
         // the other way round.
         $session->forget('registration_draft.'.$edition->competition_id);
+    }
+
+    /**
+     * Moves the moment under test; the rest of the test stays as it is.
+     */
+    public function moveTo(Session $session, CarbonInterface $at): void
+    {
+        $key = self::key($this->edition->competition_id);
+        $stored = $session->get($key);
+
+        if (is_array($stored)) {
+            $session->put($key, array_replace($stored, ['at' => $at->getTimestamp()]));
+        }
     }
 
     public static function end(Session $session, Competition $competition): void

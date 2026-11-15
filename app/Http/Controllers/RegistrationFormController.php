@@ -447,16 +447,6 @@ class RegistrationFormController extends Controller
     }
 
     /**
-     * Ends the test mode and returns to the competition page.
-     */
-    public function endTest(Request $request): RedirectResponse
-    {
-        RegistrationTestMode::end($request->session(), $this->context->requireCompetition());
-
-        return redirect()->route('competition.home');
-    }
-
-    /**
      * The test mode of this request, as applied by its middleware.
      */
     private function test(Request $request): ?RegistrationTestMode
