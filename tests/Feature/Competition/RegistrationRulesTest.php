@@ -135,3 +135,20 @@ it('W-05: asks a diverse starter for the scoring gender where the scheme scores 
     expect($starter->scored_as)->toBe(Gender::Female)
         ->and($starter->ageGroup?->code)->toBe('W20');
 });
+
+it('W-17: knows whether a minor can start at all', function () {
+    $race = openRace();
+
+    expect($race->admitsMinors())->toBeTrue();
+
+    $race->update(['min_age' => 18]);
+    expect($race->fresh()->admitsMinors())->toBeTrue();
+
+    $race->update(['min_age' => 19]);
+    expect($race->fresh()->admitsMinors())->toBeFalse();
+
+    // Without a date, minority falls back to the birth year as well.
+    $race->edition->update(['starts_on' => null, 'ends_on' => null]);
+    $race->update(['min_age' => 18]);
+    expect($race->fresh()->admitsMinors())->toBeFalse();
+});

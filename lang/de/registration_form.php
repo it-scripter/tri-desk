@@ -40,6 +40,7 @@ return [
         'guardian' => 'Nur für Minderjährige',
         'guardian_hint' => 'Wer am Wettkampftag noch nicht 18 ist, braucht das Einverständnis einer erziehungsberechtigten Person.',
         'guardian_name' => 'Name der erziehungsberechtigten Person',
+        'guardian_needed' => 'Am Wettkampftag noch nicht 18: Bitte das Einverständnis der erziehungsberechtigten Person angeben.',
         'details' => 'Weitere Angaben',
     ],
 

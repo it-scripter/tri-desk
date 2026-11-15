@@ -295,3 +295,38 @@ it('marks a sold out race on the competition page instead of linking it', functi
 
     $this->get("{$this->base}?wettbewerb={$this->race->slug}")->assertSuccessful()->assertSee('Ausgebucht');
 });
+
+it('asks for a guardian only where a minor can start', function (?int $minAge, bool $asked) {
+    $this->race->update(['min_age' => $minAge]);
+    $this->post($this->base, ['race' => $this->race->id]);
+
+    $page = $this->get("{$this->base}/personen")->assertSuccessful();
+
+    $asked
+        ? $page->assertSee('Nur für Minderjährige')
+        : $page->assertDontSee('Nur für Minderjährige');
+})->with([
+    'no minimum age' => [null, true],
+    // 18 by birth year: born late in 2009, still 17 on 27.06.2027.
+    'from 18 by birth year' => [18, true],
+    'from 19 by birth year' => [19, false],
+]);
+
+it('gives the script the race date to judge minority by', function () {
+    $this->post($this->base, ['race' => $this->race->id]);
+
+    $this->get("{$this->base}/personen")
+        ->assertSee('data-race-date="2027-06-27"', false)
+        ->assertSee('data-guardian="field-participants-0-birth_date"', false);
+});
+
+it('keeps the guardian block open after the server asked for it', function () {
+    $this->post($this->base, ['race' => $this->race->id]);
+
+    $this->from("{$this->base}/personen")
+        ->post("{$this->base}/personen", personInput(['participants' => [[
+            'first_name' => 'Kim', 'last_name' => 'Jung', 'birth_date' => '2012-04-01', 'gender' => 'w',
+        ]]]));
+
+    $this->get("{$this->base}/personen")->assertSee('data-keep-open', false);
+});

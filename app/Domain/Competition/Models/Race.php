@@ -259,6 +259,23 @@ class Race extends Model
         return $this->editionDay->date ?? $this->edition->starts_on;
     }
 
+    /**
+     * Whether a minor can start at all (W-17), so the form knows whether to
+     * ask for a guardian. Age limits count by birth year, minority to the
+     * day of the race (see RegistrationService::isMinor): with a minimum of
+     * 18 by birth year someone born late in the year is still 17 on race
+     * day. Only from 19 on is everyone of age - unless the race has no date,
+     * then minority falls back to the birth year as well.
+     */
+    public function admitsMinors(): bool
+    {
+        if ($this->min_age === null) {
+            return true;
+        }
+
+        return $this->raceDate() === null ? $this->min_age < 18 : $this->min_age < 19;
+    }
+
     public function hasDiscipline(Discipline $discipline): bool
     {
         return $this->discipline_sequence->contains($discipline);

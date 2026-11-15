@@ -8,7 +8,11 @@
     @include('registration.partials.steps', ['current' => 'people', 'hasOptions' => $hasOptions])
     @include('registration.partials.errors')
 
-    <form class="form" method="post" action="{{ route('competition.registration.people.store') }}" novalidate>
+    {{-- The race date lets the script show the guardian block only for
+         minors (W-17); without a date it judges by birth year, like the
+         server does. --}}
+    <form class="form" method="post" action="{{ route('competition.registration.people.store') }}" novalidate
+        @if ($race->raceDate()) data-race-date="{{ $race->raceDate()->format('Y-m-d') }}" @else data-race-year="{{ $race->edition->year }}" @endif>
         @csrf
 
         {{-- Honeypot: hidden from people and assistive technology alike;
@@ -74,6 +78,10 @@
                     'name' => "{$prefix}.birth_date", 'label' => __('registration_form.people.birth_date'), 'type' => 'date',
                     'value' => old("{$prefix}.birth_date", $draft->get("{$prefix}.birth_date")), 'required' => $mandatory, 'autocomplete' => $i === 0 ? 'bday' : null,
                 ])
+
+                @if ($race->admitsMinors())
+                    @include('registration.partials.guardian', ['index' => $i, 'prefix' => $prefix, 'draft' => $draft])
+                @endif
                 @include('registration.partials.field', [
                     'name' => "{$prefix}.gender", 'label' => __('registration_form.people.gender'), 'type' => 'select',
                     'value' => old("{$prefix}.gender", $draft->get("{$prefix}.gender")), 'required' => $mandatory,
@@ -96,23 +104,6 @@
                     @include('registration.partials.extra-field', ['field' => $field, 'name' => "{$prefix}.extra.{$field->key}", 'draft' => $draft, 'mandatory' => $mandatory])
                 @endforeach
 
-                <fieldset class="form__subgroup">
-                    <legend>{{ __('registration_form.people.guardian') }}</legend>
-                    <p class="field__hint">{{ __('registration_form.people.guardian_hint') }}</p>
-
-                    @include('registration.partials.field', [
-                        'name' => "{$prefix}.guardian_name", 'label' => __('registration_form.people.guardian_name'),
-                        'value' => old("{$prefix}.guardian_name", $draft->get("{$prefix}.guardian_name")),
-                    ])
-
-                    <div class="field field--check">
-                        <input type="hidden" name="participants[{{ $i }}][guardian_consent]" value="0">
-                        <input id="field-participants-{{ $i }}-guardian_consent" type="checkbox"
-                            name="participants[{{ $i }}][guardian_consent]" value="1"
-                            @checked(old("{$prefix}.guardian_consent", $draft->get("{$prefix}.guardian_consent")))>
-                        <label for="field-participants-{{ $i }}-guardian_consent">{{ __('registration.guardian_consent.text') }}</label>
-                    </div>
-                </fieldset>
             </fieldset>
         @endfor
 
