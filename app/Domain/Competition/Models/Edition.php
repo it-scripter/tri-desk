@@ -128,6 +128,22 @@ class Edition extends Model
     }
 
     /**
+     * @return HasMany<RaceOption, $this>
+     */
+    public function raceOptions(): HasMany
+    {
+        return $this->hasMany(RaceOption::class)->orderBy('sort');
+    }
+
+    /**
+     * @return HasMany<CancellationRule, $this>
+     */
+    public function cancellationRules(): HasMany
+    {
+        return $this->hasMany(CancellationRule::class)->orderBy('valid_until');
+    }
+
+    /**
      * Narrows a query to the editions the user may see with this permission.
      * Needed next to the policy: a policy answers "may I open this row", a
      * query scope keeps the other rows out of the list in the first place.

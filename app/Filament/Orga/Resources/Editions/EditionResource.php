@@ -8,6 +8,8 @@ use App\Filament\Orga\Resources\Editions\Pages\EditEdition;
 use App\Filament\Orga\Resources\Editions\Pages\ListEditions;
 use App\Filament\Orga\Resources\Editions\RelationManagers\EditionDaysRelationManager;
 use App\Filament\Orga\Resources\Editions\Tables\EditionsTable;
+use App\Filament\Shared\RelationManagers\CancellationRulesRelationManager;
+use App\Filament\Shared\RelationManagers\RaceOptionsRelationManager;
 use App\Models\User;
 use BackedEnum;
 use Filament\Facades\Filament;
@@ -76,6 +78,8 @@ class EditionResource extends Resource
     {
         return [
             EditionDaysRelationManager::class,
+            RaceOptionsRelationManager::class,
+            CancellationRulesRelationManager::class,
         ];
     }
 

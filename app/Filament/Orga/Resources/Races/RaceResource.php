@@ -8,6 +8,7 @@ use App\Filament\Orga\Resources\Races\Pages\EditRace;
 use App\Filament\Orga\Resources\Races\Pages\ListRaces;
 use App\Filament\Orga\Resources\Races\Tables\RacesTable;
 use App\Filament\Shared\RaceSchema;
+use App\Filament\Shared\RelationManagers\PriceTiersRelationManager;
 use App\Models\User;
 use BackedEnum;
 use Filament\Facades\Filament;
@@ -68,6 +69,13 @@ class RaceResource extends Resource
         // Filament hands over is typed for a generic model, so the scope is
         // not visible on it. The rule itself stays defined once, on the model.
         return $query->scopes(['visibleTo' => [$user]]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            PriceTiersRelationManager::class,
+        ];
     }
 
     public static function getPages(): array

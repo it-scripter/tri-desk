@@ -3,7 +3,9 @@
 namespace App\Domain\Competition\Models;
 
 use App\Domain\Competition\Enums\Discipline;
+use App\Domain\Competition\Enums\Gender;
 use App\Domain\Competition\Enums\RaceType;
+use App\Domain\Competition\Enums\TeamClassification;
 use App\Integrations\Results\Models\WkMapping;
 use App\Models\User;
 use App\Support\Concerns\RecordsActivity;
@@ -13,6 +15,7 @@ use Illuminate\Database\Eloquent\Casts\AsEnumCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
@@ -30,8 +33,12 @@ use Illuminate\Support\Collection;
  * @property Collection<int, Discipline> $discipline_sequence
  * @property array<string, mixed>|null $distances
  * @property int|null $participant_limit
+ * @property int|null $age_group_scheme_id
+ * @property bool $allows_diverse
+ * @property Collection<int, TeamClassification>|null $team_classifications
  * @property bool $is_public
  * @property-read Edition $edition
+ * @property-read AgeGroupScheme|null $ageGroupScheme
  */
 class Race extends Model
 {
@@ -50,6 +57,9 @@ class Race extends Model
         'participant_limit',
         'min_age',
         'max_age',
+        'age_group_scheme_id',
+        'allows_diverse',
+        'team_classifications',
         'sort',
         'is_public',
     ];
@@ -66,6 +76,9 @@ class Race extends Model
             'participant_limit' => 'integer',
             'min_age' => 'integer',
             'max_age' => 'integer',
+            'age_group_scheme_id' => 'integer',
+            'allows_diverse' => 'boolean',
+            'team_classifications' => AsEnumCollection::class.':'.TeamClassification::class,
             'sort' => 'integer',
             'is_public' => 'boolean',
         ];
@@ -88,6 +101,9 @@ class Race extends Model
             'participant_limit',
             'min_age',
             'max_age',
+            'age_group_scheme_id',
+            'allows_diverse',
+            'team_classifications',
             'is_public',
         ];
     }
@@ -106,6 +122,33 @@ class Race extends Model
     public function editionDay(): BelongsTo
     {
         return $this->belongsTo(EditionDay::class);
+    }
+
+    /**
+     * @return BelongsTo<AgeGroupScheme, $this>
+     */
+    public function ageGroupScheme(): BelongsTo
+    {
+        return $this->belongsTo(AgeGroupScheme::class);
+    }
+
+    /**
+     * @return HasMany<PriceTier, $this>
+     */
+    public function priceTiers(): HasMany
+    {
+        return $this->hasMany(PriceTier::class)->orderBy('valid_from');
+    }
+
+    /**
+     * Options restricted to this race. Options open to every race of the
+     * edition are not listed here; see RaceOption::scopeOfferedFor.
+     *
+     * @return BelongsToMany<RaceOption, $this>
+     */
+    public function restrictedOptions(): BelongsToMany
+    {
+        return $this->belongsToMany(RaceOption::class, 'race_option_race');
     }
 
     /**
@@ -128,6 +171,19 @@ class Race extends Model
         }
 
         $query->whereIn('edition_id', $user->scopeIdsWithPermission(Edition::class, $permission));
+    }
+
+    /**
+     * The genders the registration may offer: "d" only where the race allows
+     * it, championships run without it.
+     *
+     * @return array<int, Gender>
+     */
+    public function allowedGenders(): array
+    {
+        return $this->allows_diverse
+            ? [Gender::Male, Gender::Female, Gender::Diverse]
+            : [Gender::Male, Gender::Female];
     }
 
     public function hasDiscipline(Discipline $discipline): bool

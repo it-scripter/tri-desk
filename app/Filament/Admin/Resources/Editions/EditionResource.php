@@ -10,6 +10,8 @@ use App\Filament\Admin\Resources\Editions\RelationManagers\EditionDaysRelationMa
 use App\Filament\Admin\Resources\Editions\RelationManagers\RacesRelationManager;
 use App\Filament\Admin\Resources\Editions\Schemas\EditionForm;
 use App\Filament\Admin\Resources\Editions\Tables\EditionsTable;
+use App\Filament\Shared\RelationManagers\CancellationRulesRelationManager;
+use App\Filament\Shared\RelationManagers\RaceOptionsRelationManager;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -56,6 +58,8 @@ class EditionResource extends Resource
         return [
             EditionDaysRelationManager::class,
             RacesRelationManager::class,
+            RaceOptionsRelationManager::class,
+            CancellationRulesRelationManager::class,
         ];
     }
 

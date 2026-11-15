@@ -5,9 +5,11 @@ namespace App\Filament\Shared;
 use App\Domain\Competition\Enums\Discipline;
 use App\Domain\Competition\Enums\EditionStatus;
 use App\Domain\Competition\Enums\RaceType;
+use App\Domain\Competition\Enums\TeamClassification;
 use App\Domain\Competition\Models\Edition;
 use App\Domain\Competition\Rules\EditableEdition;
 use Closure;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -92,7 +94,8 @@ class RaceSchema
                     ->label(__('race.fields.type'))
                     ->options(RaceType::labels())
                     ->default(RaceType::Individual->value)
-                    ->required(),
+                    ->required()
+                    ->live(),
 
                 TimePicker::make('starts_at')
                     ->label(__('race.fields.starts_at'))
@@ -140,7 +143,36 @@ class RaceSchema
                     ->label(__('race.fields.is_public'))
                     ->default(true),
             ])->columns(2),
+
+            // Scoring (W-05): the age group scheme, whether "d" may be
+            // entered, and the classifications of relays and teams. How a
+            // team falls into one of them is settled with the registration.
+            Section::make(__('race.sections.scoring'))->schema([
+                Select::make('age_group_scheme_id')
+                    ->label(__('race.fields.age_group_scheme'))
+                    ->relationship('ageGroupScheme', 'name')
+                    ->preload(),
+
+                Toggle::make('allows_diverse')
+                    ->label(__('race.fields.allows_diverse'))
+                    ->helperText(__('race.hints.allows_diverse')),
+
+                CheckboxList::make('team_classifications')
+                    ->label(__('race.fields.team_classifications'))
+                    ->helperText(__('race.hints.team_classifications'))
+                    ->options(TeamClassification::labels())
+                    ->columns(4)
+                    ->visible(fn (Get $get): bool => self::isTeamType($get('type')))
+                    ->columnSpanFull(),
+            ])->columns(2),
         ];
+    }
+
+    private static function isTeamType(mixed $type): bool
+    {
+        $type = $type instanceof RaceType ? $type : RaceType::tryFrom(is_string($type) ? $type : '');
+
+        return in_array($type, [RaceType::Relay, RaceType::Team], true);
     }
 
     /**

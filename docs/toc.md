@@ -434,3 +434,5 @@ Die Entwicklungsblöcke enden eine Woche vor dem Anmeldestart, damit Zeit für P
 ## 11. Offene Fragen
 
 - [ ] Ergebnisse: dauerhaft aus der bestehenden Ergebnis-DB lesen oder künftig direkt ins Portal importieren? Für den Start nötig: Bedeutung der Spalte Entw bestätigen, Liste der AK-Kürzel, Zugriffsweg zur Alt-DB (gleicher Server?).
+- [ ] Geschlecht und Wertungen (W-05, offen seit Paket 2a): Je Wettbewerb lässt sich die Angabe „divers“ freischalten (Meisterschaften ohne „d“); je Altersklassen-Schema wird „d“ entweder eigens gewertet oder nach Wahl in „m“/„w“. Für Staffeln und Teams sind die Wertungen männlich, weiblich, mixed und offen je Wettbewerb wählbar. Noch auszuformulieren vor Paket 2b: Ab wann gilt eine Staffel als „mixed“ (Mindestanzahl je Geschlecht?), wie zählt ein Mitglied mit „d“, und wonach richtet sich die Altersklasse einer Staffel (ältestes Mitglied, Summe, keine)?
+- [ ] Preise und Altersklassen für 2027 (W-03 bis W-05): tatsächliche Preisstufen, Zusatzoptionen und Stornoregeln des Veranstalters sowie das verbindliche Altersklassen-Schema mit Kürzeln. Bis dahin enthält nur die lokale Entwicklungsumgebung Beispieldaten (`DemoPricingSeeder`).
