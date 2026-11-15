@@ -52,10 +52,15 @@ class RegistrationService
     public function register(RegistrationData $data): RegistrationResult
     {
         $race = $data->race->loadMissing(['edition', 'editionDay', 'ageGroupScheme.ageGroups', 'fields']);
+
+        // Two clocks: the rules (window, price tier) are judged at the moment
+        // of the data, which the test mode may set; places, the payment
+        // window and consent times always run on the real clock.
         $now = CarbonImmutable::now();
+        $at = $data->at ?? $now;
 
         $this->precheck($data);
-        $tier = $this->tier($race, $data->byOrga, $now);
+        $tier = $this->tier($race, $data->byOrga, $at);
 
         $classification = $race->isTeamRace()
             ? $this->classifier->classify($race, $data->participants)
@@ -98,6 +103,7 @@ class RegistrationService
                 'privacy_version' => $data->privacyAcknowledged ? __('registration_form.consents.privacy.version') : null,
                 'token_hash' => hash('sha256', $token),
                 'entered_by_orga' => $data->byOrga,
+                'is_test' => $data->isTest,
             ]);
 
             foreach ($data->participants as $position => $participant) {
@@ -129,10 +135,10 @@ class RegistrationService
     public function precheck(RegistrationData $data): void
     {
         $race = $data->race->loadMissing(['edition', 'editionDay', 'ageGroupScheme.ageGroups', 'fields']);
-        $now = CarbonImmutable::now();
+        $at = $data->at ?? CarbonImmutable::now();
 
-        $this->assertOpen($race, $data->byOrga, $now);
-        $this->tier($race, $data->byOrga, $now);
+        $this->assertOpen($race, $data->byOrga, $at);
+        $this->tier($race, $data->byOrga, $at);
         $this->assertTeamSize($race, $data->participants);
 
         foreach ($data->participants as $index => $participant) {
@@ -431,8 +437,8 @@ class RegistrationService
 
     /**
      * Same first name, last name and birth date in the same race (W-16).
-     * The collation compares names without regard to case; cancelled and
-     * expired registrations do not count.
+     * The collation compares names without regard to case; cancelled,
+     * expired and test registrations do not count.
      *
      * @throws DuplicateRegistration
      */

@@ -4,6 +4,7 @@ namespace App\Domain\Competition\Services;
 
 use App\Domain\Competition\Models\Edition;
 use App\Domain\Competition\Models\Race;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
 /**
@@ -12,9 +13,9 @@ use Illuminate\Support\Collection;
  * page could offer a registration the form then refuses.
  *
  * A race is open when its edition is in the registration window and the race
- * is public with a price tier valid now. The binding check on limits and
- * rules stays with the registration service; this only decides what to
- * offer.
+ * is public with a price tier valid now - or at the moment the test mode
+ * plays through. The binding check on limits and rules stays with the
+ * registration service; this only decides what to offer.
  */
 class RegistrationAvailability
 {
@@ -22,19 +23,21 @@ class RegistrationAvailability
         private readonly PriceCalculator $prices,
     ) {}
 
-    public function isEditionOpen(Edition $edition): bool
+    public function isEditionOpen(Edition $edition, ?CarbonInterface $at = null): bool
     {
+        $at ??= now();
+
         return ! $edition->isClosed()
             && $edition->registration_opens_at !== null
-            && now()->gte($edition->registration_opens_at)
-            && ($edition->registration_closes_at === null || now()->lte($edition->registration_closes_at));
+            && $at->gte($edition->registration_opens_at)
+            && ($edition->registration_closes_at === null || $at->lte($edition->registration_closes_at));
     }
 
-    public function isRaceOpen(Race $race): bool
+    public function isRaceOpen(Race $race, ?CarbonInterface $at = null): bool
     {
         return $race->is_public
-            && $this->isEditionOpen($race->edition)
-            && $this->prices->tierFor($race, now()) !== null;
+            && $this->isEditionOpen($race->edition, $at)
+            && $this->prices->tierFor($race, $at ?? now()) !== null;
     }
 
     /**
@@ -42,16 +45,16 @@ class RegistrationAvailability
      *
      * @return Collection<int, Race>
      */
-    public function openRaces(Edition $edition): Collection
+    public function openRaces(Edition $edition, ?CarbonInterface $at = null): Collection
     {
-        if (! $this->isEditionOpen($edition)) {
+        if (! $this->isEditionOpen($edition, $at)) {
             return collect();
         }
 
         return $edition->races()
             ->where('is_public', true)
             ->get()
-            ->filter(fn (Race $race): bool => $this->prices->tierFor($race, now()) !== null)
+            ->filter(fn (Race $race): bool => $this->prices->tierFor($race, $at ?? now()) !== null)
             ->values();
     }
 

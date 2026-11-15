@@ -51,6 +51,21 @@ class EditionPolicy
         return $user->hasPermissionFor('edition.copy', $edition);
     }
 
+    /**
+     * Playing the public registration form through as a test, before or
+     * while registration is open. Whoever manages the registrations of the
+     * edition may; a closed edition takes no more registrations, not even
+     * tests.
+     */
+    public function testRegistration(User $user, Edition $edition): bool
+    {
+        if ($edition->isClosed()) {
+            return false;
+        }
+
+        return $user->hasPermissionFor('registration.manage', $edition);
+    }
+
     public function delete(User $user, Edition $edition): bool
     {
         return $user->hasPermissionFor('edition.delete', $edition);

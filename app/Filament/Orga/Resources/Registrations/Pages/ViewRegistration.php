@@ -4,6 +4,7 @@ namespace App\Filament\Orga\Resources\Registrations\Pages;
 
 use App\Filament\Orga\Resources\Registrations\Actions\CancelRegistrationAction;
 use App\Filament\Orga\Resources\Registrations\RegistrationResource;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewRegistration extends ViewRecord
@@ -14,6 +15,7 @@ class ViewRegistration extends ViewRecord
     {
         return [
             CancelRegistrationAction::make(),
+            DeleteAction::make(),
         ];
     }
 }

@@ -120,3 +120,22 @@ function openRace(array $race = [], int $amountCents = 4500): Race
 
     return $model;
 }
+
+/**
+ * Input of the persons step of the public form for a single starter.
+ *
+ * @param  array<string, mixed>  $overrides
+ * @return array<string, mixed>
+ */
+function personInput(array $overrides = []): array
+{
+    return array_replace([
+        'contact' => ['first_name' => 'Erika', 'last_name' => 'Muster', 'email' => 'erika@example.org'],
+        'participants' => [[
+            'first_name' => 'Erika',
+            'last_name' => 'Muster',
+            'birth_date' => '1987-05-10',
+            'gender' => 'w',
+        ]],
+    ], $overrides);
+}

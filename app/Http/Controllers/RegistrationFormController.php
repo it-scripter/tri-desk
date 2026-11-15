@@ -16,8 +16,10 @@ use App\Domain\Competition\Services\RegistrationAvailability;
 use App\Domain\Competition\Services\RegistrationService;
 use App\Domain\Messaging\Mail\RegistrationConfirmation;
 use App\Http\Registration\RegistrationDraft;
+use App\Http\Registration\RegistrationTestMode;
 use App\Http\Registration\RejectionField;
 use App\Support\CompetitionContext;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -32,6 +34,9 @@ use Illuminate\View\View;
  *
  * Payment follows with package 2c - until then the form ends with the
  * reserved place and the confirmation mail (W-15).
+ *
+ * In the test mode the same steps run for the edition under test, judged at
+ * the moment under test, and store a test registration.
  */
 class RegistrationFormController extends Controller
 {
@@ -57,7 +62,8 @@ class RegistrationFormController extends Controller
     public function race(Request $request): View|RedirectResponse
     {
         $edition = $this->context->edition();
-        $races = $edition !== null ? $this->availability->openRaces($edition) : collect();
+        $at = $this->at($request);
+        $races = $edition !== null ? $this->availability->openRaces($edition, $at) : collect();
 
         $preselected = $races->firstWhere('slug', $request->query('wettbewerb'));
 
@@ -69,8 +75,8 @@ class RegistrationFormController extends Controller
 
         return view('registration.race', [
             'races' => $races,
-            'open' => $edition !== null && $this->availability->isEditionOpen($edition),
-            'tiers' => $races->mapWithKeys(fn (Race $race): array => [$race->id => $this->prices->tierFor($race, now())]),
+            'open' => $edition !== null && $this->availability->isEditionOpen($edition, $at),
+            'tiers' => $races->mapWithKeys(fn (Race $race): array => [$race->id => $this->prices->tierFor($race, $at)]),
             'soldOut' => $races->mapWithKeys(fn (Race $race): array => [$race->id => $this->availability->isSoldOut($race)]),
         ]);
     }
@@ -87,7 +93,7 @@ class RegistrationFormController extends Controller
 
         $race = Race::query()->whereKey($validated['race'])->firstOrFail();
 
-        if (! $this->availability->isRaceOpen($race)) {
+        if (! $this->availability->isRaceOpen($race, $this->at($request))) {
             return redirect()->route('competition.registration.race')
                 ->withErrors(['registration' => __('registration_form.race.none')]);
         }
@@ -149,7 +155,7 @@ class RegistrationFormController extends Controller
         ]);
 
         try {
-            $this->registrations->precheck($draft->toData($race));
+            $this->registrations->precheck($draft->toData($race, $this->test($request)));
         } catch (RegistrationRejected $rejection) {
             throw ValidationException::withMessages([RejectionField::for($rejection) => $rejection->getMessage()]);
         }
@@ -267,8 +273,8 @@ class RegistrationFormController extends Controller
             return $this->restart();
         }
 
-        $data = $draft->toData($race);
-        $tier = $this->prices->tierFor($race, now());
+        $data = $draft->toData($race, $this->test($request));
+        $tier = $this->prices->tierFor($race, $this->at($request));
 
         return view('registration.summary', [
             'race' => $race,
@@ -299,7 +305,7 @@ class RegistrationFormController extends Controller
         }
 
         try {
-            $result = $this->registrations->register($draft->toData($race));
+            $result = $this->registrations->register($draft->toData($race, $this->test($request)));
         } catch (RegistrationRejected $rejection) {
             return redirect()->route('competition.registration.summary')
                 ->withErrors(['registration' => $rejection->getMessage()]);
@@ -438,6 +444,34 @@ class RegistrationFormController extends Controller
     private function requiredSlots(Race $race): int
     {
         return $race->isTeamRace() ? ($race->team_size_min ?? 2) : 1;
+    }
+
+    /**
+     * Ends the test mode and returns to the competition page.
+     */
+    public function endTest(Request $request): RedirectResponse
+    {
+        RegistrationTestMode::end($request->session(), $this->context->requireCompetition());
+
+        return redirect()->route('competition.home');
+    }
+
+    /**
+     * The test mode of this request, as applied by its middleware.
+     */
+    private function test(Request $request): ?RegistrationTestMode
+    {
+        $test = $request->attributes->get(RegistrationTestMode::class);
+
+        return $test instanceof RegistrationTestMode ? $test : null;
+    }
+
+    /**
+     * The moment the rules are judged at: now, or the moment under test.
+     */
+    private function at(Request $request): CarbonImmutable
+    {
+        return $this->test($request)->at ?? CarbonImmutable::now();
     }
 
     private function draftRace(Request $request): ?Race

@@ -62,6 +62,10 @@ class RegistrationInfolist
                     ->label(__('registration.fields.entered_by_orga'))
                     ->boolean(),
 
+                IconEntry::make('is_test')
+                    ->label(__('registration.fields.is_test'))
+                    ->boolean(),
+
                 TextEntry::make('created_at')
                     ->label(__('registration.fields.created_at'))
                     ->dateTime('d.m.Y H:i'),

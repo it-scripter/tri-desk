@@ -1,3 +1,7 @@
+@if ($isTest)
+*** {{ __('registration_form.test.mail') }} ***
+
+@endif
 {{ __('registration_form.mail.greeting', ['name' => $registration->contact_first_name]) }}
 
 {{ __('registration_form.mail.received', ['race' => $race->name, 'edition' => $edition->titleWithNumber()]) }}

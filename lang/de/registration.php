@@ -27,6 +27,7 @@ return [
         'participants' => 'Teilnehmende',
         'participants_count' => 'Personen',
         'entered_by_orga' => 'Durch Orga-Team',
+        'is_test' => 'Test',
         'created_at' => 'Angemeldet am',
         'name' => 'Name',
         'birth_date' => 'Geburtsdatum',
@@ -43,6 +44,14 @@ return [
         'cancel' => 'Stornieren',
         'cancel_confirm' => 'Die Anmeldung wird storniert und der Platz freigegeben. Eine Erstattung wird damit noch nicht ausgelöst.',
         'cancelled' => 'Anmeldung storniert.',
+    ],
+
+    'test' => [
+        'action' => 'Anmeldung testen',
+        'heading' => 'Anmeldeformular testen',
+        'description' => 'Öffnet das öffentliche Anmeldeformular für diese Ausgabe im Testmodus. Testanmeldungen werden gespeichert und per Mail bestätigt (Betreff mit [TEST]), belegen aber keinen Platz und lassen sich in der Anmeldeliste löschen.',
+        'at' => 'Testzeitpunkt',
+        'at_hint' => 'Das Formular verhält sich so, als wäre es dieser Zeitpunkt: Preisstufe, Anmeldezeitraum und Fristen richten sich danach.',
     ],
 
     // Version of the consent text below. Raise it whenever the text

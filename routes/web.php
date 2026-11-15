@@ -43,6 +43,7 @@ Route::prefix('{competition}')
         Route::controller(RegistrationFormController::class)
             ->prefix('anmeldung')
             ->name('registration.')
+            ->middleware('registration.test')
             ->group(function (): void {
                 Route::get('/', 'race')->name('race');
                 Route::post('/', 'chooseRace')->name('race.store');
@@ -55,6 +56,7 @@ Route::prefix('{competition}')
                 Route::get('pruefen', 'summary')->name('summary');
                 Route::post('pruefen', 'submit')->middleware('throttle:registration')->name('submit');
                 Route::get('eingegangen', 'done')->name('done');
+                Route::post('test/beenden', 'endTest')->name('test.end');
             });
 
         // Magic link of the confirmation mail (W-15).

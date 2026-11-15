@@ -43,6 +43,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $token_hash
  * @property int|null $user_id
  * @property bool $entered_by_orga
+ * @property bool $is_test
  * @property Carbon $created_at
  * @property-read Race $race
  * @property-read PriceTier|null $priceTier
@@ -76,6 +77,7 @@ class Registration extends Model
         'token_hash',
         'user_id',
         'entered_by_orga',
+        'is_test',
     ];
 
     /**
@@ -102,6 +104,7 @@ class Registration extends Model
             'terms_accepted_at' => 'datetime',
             'privacy_acknowledged_at' => 'datetime',
             'entered_by_orga' => 'boolean',
+            'is_test' => 'boolean',
         ];
     }
 
@@ -130,6 +133,7 @@ class Registration extends Model
             'privacy_acknowledged_at',
             'privacy_version',
             'entered_by_orga',
+            'is_test',
         ];
     }
 
@@ -176,7 +180,8 @@ class Registration extends Model
     /**
      * Registrations that hold a place: confirmed ones, and reserved ones
      * whose payment window has not run out yet. A reservation past its window
-     * no longer counts, even before the expiry job has marked it.
+     * no longer counts, even before the expiry job has marked it. Test
+     * registrations never hold a place.
      *
      * @param  Builder<Registration>  $query
      */
@@ -184,11 +189,22 @@ class Registration extends Model
     {
         $at ??= now();
 
-        $query->where(fn (Builder $q) => $q
+        $query->where('is_test', false)->where(fn (Builder $q) => $q
             ->where('status', RegistrationStatus::Confirmed)
             ->orWhere(fn (Builder $r) => $r
                 ->where('status', RegistrationStatus::Reserved)
                 ->where('reserved_until', '>', $at)));
+    }
+
+    /**
+     * Real registrations only, without the test registrations of the orga
+     * team. Every list and export of participants starts from here.
+     *
+     * @param  Builder<Registration>  $query
+     */
+    public function scopeReal(Builder $query): void
+    {
+        $query->where('is_test', false);
     }
 
     /**

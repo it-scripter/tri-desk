@@ -16,6 +16,10 @@
     @endif
     @include('registration.partials.errors')
 
+    @if ($registration->is_test)
+        <p class="alert alert--warning" role="status">{{ __('registration_form.test.badge') }}</p>
+    @endif
+
     <section class="card">
         <dl class="facts">
             <dt>{{ __('registration_form.manage.status') }}</dt>

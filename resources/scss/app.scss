@@ -107,6 +107,8 @@ a {
     --colour-error: #b42318;
     --colour-success: #067647;
     --colour-focus: #f5b301;
+    --colour-warning: #93370d;
+    --colour-warning-background: #fffaeb;
 }
 
 :focus-visible {
@@ -335,4 +337,30 @@ a {
 
 .total {
     font-size: 1.25rem;
+}
+
+.alert--warning {
+    color: var(--colour-warning);
+    background: var(--colour-warning-background);
+    border: 2px solid var(--colour-warning);
+}
+
+// The test mode must be impossible to miss (registration test mode).
+.test-banner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem var(--spacing);
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing);
+    margin-bottom: calc(var(--spacing) * 1.5);
+    color: var(--colour-warning);
+    background: var(--colour-warning-background);
+    border: 2px solid var(--colour-warning);
+    border-radius: 0.5rem;
+
+    p {
+        margin: 0;
+        font-weight: 600;
+    }
 }

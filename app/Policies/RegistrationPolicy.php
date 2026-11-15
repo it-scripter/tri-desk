@@ -10,7 +10,7 @@ use App\Models\User;
  * Registrations belong to a race and through it to an edition; the orga team
  * of that edition sees and manages them (specification 3). Registrations are
  * cancelled, never deleted - the record is needed for payments and the
- * audit log.
+ * audit log. Test registrations of the orga team are the exception.
  */
 class RegistrationPolicy
 {
@@ -39,9 +39,13 @@ class RegistrationPolicy
         return $this->manage($user, $registration);
     }
 
+    /**
+     * Only test registrations may be deleted; a real one is cancelled and
+     * kept for payments and the audit log.
+     */
     public function delete(User $user, Registration $registration): bool
     {
-        return false;
+        return $registration->is_test && $this->manage($user, $registration);
     }
 
     private function manage(User $user, Registration $registration): bool

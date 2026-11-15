@@ -102,6 +102,13 @@ return [
         'changes_later' => 'Daten ändern und Ummelden sind hier bald ebenfalls möglich. Bis dahin hilft das Orga-Team weiter.',
     ],
 
+    'test' => [
+        'banner' => 'Testmodus: Die Anmeldung läuft so, als wäre es :date. Anmeldungen werden als Test gespeichert und belegen keinen Platz.',
+        'end' => 'Testmodus beenden',
+        'mail' => 'TEST – Diese Anmeldung wurde im Testmodus angelegt und ist keine echte Anmeldung.',
+        'badge' => 'Testanmeldung',
+    ],
+
     'navigation' => [
         'back' => 'Zurück',
         'next' => 'Weiter',

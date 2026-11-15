@@ -16,6 +16,10 @@
             @endif
         </header>
 
+        @if (! empty($testMode))
+            @include('registration.partials.test-banner', ['test' => $testMode])
+        @endif
+
         <main>
             @yield('content')
         </main>

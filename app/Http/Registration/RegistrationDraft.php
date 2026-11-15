@@ -95,9 +95,10 @@ final class RegistrationDraft
 
     /**
      * The draft as registration data. Options and consents are taken only
-     * once their steps were done; before that they are empty.
+     * once their steps were done; before that they are empty. In the test
+     * mode the rules are judged at the moment under test.
      */
-    public function toData(Race $race): RegistrationData
+    public function toData(Race $race, ?RegistrationTestMode $test = null): RegistrationData
     {
         /** @var array<int, array<string, mixed>> $participants */
         $participants = $this->get('participants', []);
@@ -114,6 +115,8 @@ final class RegistrationDraft
             termsAccepted: (bool) $this->get('consents.terms', false),
             privacyAcknowledged: (bool) $this->get('consents.privacy', false),
             hideNameInLists: (bool) $this->get('consents.hide_name', false),
+            at: $test?->at,
+            isTest: $test !== null,
         );
     }
 

@@ -3,6 +3,7 @@
 namespace App\Domain\Competition\Data;
 
 use App\Domain\Competition\Models\Race;
+use Carbon\CarbonImmutable;
 
 /**
  * Everything a registration is made of, as entered in the public form or by
@@ -20,6 +21,10 @@ final readonly class RegistrationData
      * @param  bool  $termsAccepted  terms of participation, incl. photo and video (W-10)
      * @param  bool  $privacyAcknowledged  privacy notice (W-10)
      * @param  bool  $hideNameInLists  objection to the name in public lists (4.4)
+     * @param  CarbonImmutable|null  $at  moment the rules are judged at; set
+     *                                    by the test mode to play the form
+     *                                    through before registration opens
+     * @param  bool  $isTest  a test registration of the orga team
      */
     public function __construct(
         public Race $race,
@@ -35,5 +40,7 @@ final readonly class RegistrationData
         public bool $termsAccepted = false,
         public bool $privacyAcknowledged = false,
         public bool $hideNameInLists = false,
+        public ?CarbonImmutable $at = null,
+        public bool $isTest = false,
     ) {}
 }

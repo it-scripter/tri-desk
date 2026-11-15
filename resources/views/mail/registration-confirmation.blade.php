@@ -8,6 +8,10 @@
     <title>{{ $race->name }}</title>
 </head>
 <body style="font-family: system-ui, sans-serif; line-height: 1.5; color: #1b1b18;">
+    @if ($isTest)
+        <p style="padding: 0.5rem; border: 2px solid #b42318; color: #b42318;"><strong>{{ __('registration_form.test.mail') }}</strong></p>
+    @endif
+
     <p>{{ __('registration_form.mail.greeting', ['name' => $registration->contact_first_name]) }}</p>
 
     <p>{{ __('registration_form.mail.received', ['race' => $race->name, 'edition' => $edition->titleWithNumber()]) }}</p>

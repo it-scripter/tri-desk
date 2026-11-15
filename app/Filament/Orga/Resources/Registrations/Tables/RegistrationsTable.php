@@ -7,9 +7,13 @@ use App\Domain\Competition\Enums\TeamClassification;
 use App\Domain\Competition\Models\Registration;
 use App\Domain\Competition\Models\RegistrationParticipant;
 use App\Filament\Orga\Resources\Registrations\Actions\CancelRegistrationAction;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -37,6 +41,13 @@ class RegistrationsTable
                 TextColumn::make('race.name')
                     ->label(__('registration.fields.race'))
                     ->sortable(),
+
+                IconColumn::make('is_test')
+                    ->label(__('registration.fields.is_test'))
+                    ->boolean()
+                    ->trueIcon(Heroicon::OutlinedBeaker)
+                    ->trueColor('warning')
+                    ->falseIcon(null),
 
                 TextColumn::make('team_classification')
                     ->label(__('registration.fields.team_classification'))
@@ -72,10 +83,15 @@ class RegistrationsTable
                 SelectFilter::make('status')
                     ->label(__('registration.fields.status'))
                     ->options(RegistrationStatus::labels()),
+
+                TernaryFilter::make('is_test')
+                    ->label(__('registration.fields.is_test')),
             ])
             ->recordActions([
                 ViewAction::make(),
                 CancelRegistrationAction::make(),
+                // The policy allows deleting test registrations only.
+                DeleteAction::make(),
             ]);
     }
 }

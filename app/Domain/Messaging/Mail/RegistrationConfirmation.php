@@ -36,11 +36,14 @@ class RegistrationConfirmation extends Mailable implements ShouldBeEncrypted, Sh
     {
         $race = $this->registration->race;
 
+        $subject = __('registration_form.mail.subject', [
+            'race' => $race->name,
+            'edition' => $race->edition->titleWithNumber(),
+        ]);
+
+        // A test registration must never be taken for a real one.
         return new Envelope(
-            subject: __('registration_form.mail.subject', [
-                'race' => $race->name,
-                'edition' => $race->edition->titleWithNumber(),
-            ]),
+            subject: $this->registration->is_test ? '[TEST] '.$subject : $subject,
         );
     }
 
@@ -56,6 +59,7 @@ class RegistrationConfirmation extends Mailable implements ShouldBeEncrypted, Sh
                 'race' => $race,
                 'edition' => $race->edition,
                 'reserved' => $this->registration->status === RegistrationStatus::Reserved,
+                'isTest' => $this->registration->is_test,
                 // Built here rather than in a request: the queued job has no
                 // competition context, so the slug is passed explicitly.
                 'link' => route('competition.registration.manage', [
