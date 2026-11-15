@@ -91,6 +91,16 @@ class EditionForm
                     ->displayFormat('d.m.Y H:i')
                     ->seconds(false),
 
+                TextInput::make('payment_window_hours')
+                    ->label(__('edition.fields.payment_window_hours'))
+                    ->helperText(__('edition.hints.payment_window_hours'))
+                    ->numeric()
+                    ->minValue(1)
+                    ->maxValue(720)
+                    ->suffix('h')
+                    ->default(48)
+                    ->required(),
+
                 Textarea::make('note')
                     ->label(__('edition.fields.note'))
                     ->rows(2)

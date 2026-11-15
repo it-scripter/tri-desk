@@ -23,6 +23,7 @@ return [
         'registration_opens_at' => 'Anmeldestart',
         'registration_closes_at' => 'Meldeschluss',
         'transfer_deadline_at' => 'Ummeldeschluss',
+        'payment_window_hours' => 'Zahlungsfrist',
         'is_current' => 'Aktuelle Ausgabe',
         'note' => 'Hinweis',
         'races_count' => 'Wettbewerbe',
@@ -32,6 +33,7 @@ return [
         'number' => 'Nur ausfüllen, wenn die Ausgaben gezählt werden, zum Beispiel 38 für den 38. Volkstriathlon.',
         'display_name' => 'Abweichender Name dieser Ausgabe, zum Beispiel BerlinMan für Ausgaben bis 2024. Leer lassen, wenn der Name des Wettkampfs gilt.',
         'is_current' => 'Je Wettkampf kann nur eine Ausgabe die aktuelle sein; die bisherige wird automatisch abgewählt.',
+        'payment_window_hours' => 'So viele Stunden bleibt ein unbezahlter Platz reserviert; danach wird er wieder frei.',
     ],
 
     'validation' => [

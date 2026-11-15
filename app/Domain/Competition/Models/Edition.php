@@ -29,6 +29,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $registration_opens_at
  * @property Carbon|null $registration_closes_at
  * @property Carbon|null $transfer_deadline_at
+ * @property int $payment_window_hours
  * @property bool $is_current
  * @property string|null $note
  * @property-read Competition $competition
@@ -37,6 +38,16 @@ class Edition extends Model
 {
     /** @use HasFactory<EditionFactory> */
     use HasFactory, RecordsActivity;
+
+    /**
+     * Defaults of the table, known to a new model before it is reloaded -
+     * otherwise the audit log takes them for a change on the first update.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'payment_window_hours' => 48,
+    ];
 
     protected $fillable = [
         'competition_id',
@@ -50,6 +61,7 @@ class Edition extends Model
         'registration_opens_at',
         'registration_closes_at',
         'transfer_deadline_at',
+        'payment_window_hours',
         'is_current',
         'note',
     ];
@@ -68,6 +80,7 @@ class Edition extends Model
             'registration_opens_at' => 'datetime',
             'registration_closes_at' => 'datetime',
             'transfer_deadline_at' => 'datetime',
+            'payment_window_hours' => 'integer',
             'is_current' => 'boolean',
         ];
     }
@@ -89,6 +102,7 @@ class Edition extends Model
             'registration_opens_at',
             'registration_closes_at',
             'transfer_deadline_at',
+            'payment_window_hours',
             'is_current',
         ];
     }

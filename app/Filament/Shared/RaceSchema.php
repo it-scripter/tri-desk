@@ -97,6 +97,22 @@ class RaceSchema
                     ->required()
                     ->live(),
 
+                TextInput::make('team_size_min')
+                    ->label(__('race.fields.team_size_min'))
+                    ->helperText(__('race.hints.team_size'))
+                    ->numeric()
+                    ->minValue(2)
+                    ->maxValue(20)
+                    ->visible(fn (Get $get): bool => self::isTeamType($get('type'))),
+
+                TextInput::make('team_size_max')
+                    ->label(__('race.fields.team_size_max'))
+                    ->numeric()
+                    ->minValue(2)
+                    ->maxValue(20)
+                    ->gte('team_size_min')
+                    ->visible(fn (Get $get): bool => self::isTeamType($get('type'))),
+
                 TimePicker::make('starts_at')
                     ->label(__('race.fields.starts_at'))
                     ->seconds(false),
@@ -164,6 +180,23 @@ class RaceSchema
                     ->columns(4)
                     ->visible(fn (Get $get): bool => self::isTeamType($get('type')))
                     ->columnSpanFull(),
+
+                TextInput::make('mixed_min_male')
+                    ->label(__('race.fields.mixed_min_male'))
+                    ->helperText(__('race.hints.mixed_min'))
+                    ->numeric()
+                    ->minValue(1)
+                    ->default(1)
+                    ->required()
+                    ->visible(fn (Get $get): bool => self::isTeamType($get('type'))),
+
+                TextInput::make('mixed_min_female')
+                    ->label(__('race.fields.mixed_min_female'))
+                    ->numeric()
+                    ->minValue(1)
+                    ->default(1)
+                    ->required()
+                    ->visible(fn (Get $get): bool => self::isTeamType($get('type'))),
             ])->columns(2),
         ];
     }

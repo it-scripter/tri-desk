@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -30,20 +31,36 @@ use Illuminate\Support\Collection;
  * @property string $name
  * @property string $slug
  * @property RaceType $type
+ * @property int|null $team_size_min
+ * @property int|null $team_size_max
  * @property Collection<int, Discipline> $discipline_sequence
  * @property array<string, mixed>|null $distances
  * @property int|null $participant_limit
  * @property int|null $age_group_scheme_id
  * @property bool $allows_diverse
  * @property Collection<int, TeamClassification>|null $team_classifications
+ * @property int $mixed_min_male
+ * @property int $mixed_min_female
  * @property bool $is_public
  * @property-read Edition $edition
  * @property-read AgeGroupScheme|null $ageGroupScheme
+ * @property-read EditionDay|null $editionDay
  */
 class Race extends Model
 {
     /** @use HasFactory<RaceFactory> */
     use HasFactory, RecordsActivity;
+
+    /**
+     * Defaults of the table, known to a new model before it is reloaded -
+     * otherwise the audit log takes them for a change on the first update.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'mixed_min_male' => 1,
+        'mixed_min_female' => 1,
+    ];
 
     protected $fillable = [
         'edition_id',
@@ -51,6 +68,8 @@ class Race extends Model
         'name',
         'slug',
         'type',
+        'team_size_min',
+        'team_size_max',
         'discipline_sequence',
         'distances',
         'starts_at',
@@ -60,6 +79,8 @@ class Race extends Model
         'age_group_scheme_id',
         'allows_diverse',
         'team_classifications',
+        'mixed_min_male',
+        'mixed_min_female',
         'sort',
         'is_public',
     ];
@@ -71,6 +92,10 @@ class Race extends Model
     {
         return [
             'type' => RaceType::class,
+            'team_size_min' => 'integer',
+            'team_size_max' => 'integer',
+            'mixed_min_male' => 'integer',
+            'mixed_min_female' => 'integer',
             'discipline_sequence' => AsEnumCollection::class.':'.Discipline::class,
             'distances' => 'array',
             'participant_limit' => 'integer',
@@ -95,6 +120,8 @@ class Race extends Model
             'name',
             'slug',
             'type',
+            'team_size_min',
+            'team_size_max',
             'discipline_sequence',
             'distances',
             'starts_at',
@@ -104,6 +131,8 @@ class Race extends Model
             'age_group_scheme_id',
             'allows_diverse',
             'team_classifications',
+            'mixed_min_male',
+            'mixed_min_female',
             'is_public',
         ];
     }
@@ -152,6 +181,14 @@ class Race extends Model
     }
 
     /**
+     * @return HasMany<Registration, $this>
+     */
+    public function registrations(): HasMany
+    {
+        return $this->hasMany(Registration::class);
+    }
+
+    /**
      * @return HasMany<WkMapping, $this>
      */
     public function wkMappings(): HasMany
@@ -184,6 +221,33 @@ class Race extends Model
         return $this->allows_diverse
             ? [Gender::Male, Gender::Female, Gender::Diverse]
             : [Gender::Male, Gender::Female];
+    }
+
+    public function isTeamRace(): bool
+    {
+        return in_array($this->type, [RaceType::Relay, RaceType::Team], true);
+    }
+
+    /**
+     * The classifications a relay or team may be scored in (W-18). A race
+     * that lists none offers all of them.
+     *
+     * @return array<int, TeamClassification>
+     */
+    public function offeredTeamClassifications(): array
+    {
+        $offered = $this->team_classifications?->all() ?? [];
+
+        return $offered === [] ? TeamClassification::cases() : array_values($offered);
+    }
+
+    /**
+     * The date age and minority are judged on: the race day, else the first
+     * day of the edition. Null for an edition without a date.
+     */
+    public function raceDate(): ?Carbon
+    {
+        return $this->editionDay->date ?? $this->edition->starts_on;
     }
 
     public function hasDiscipline(Discipline $discipline): bool

@@ -28,6 +28,10 @@ return [
         'age_group_scheme' => 'Altersklassen-Schema',
         'allows_diverse' => 'Angabe „divers“ zulassen',
         'team_classifications' => 'Team-Wertungen',
+        'team_size_min' => 'Mitglieder mindestens',
+        'team_size_max' => 'Mitglieder höchstens',
+        'mixed_min_male' => 'Mixed: mindestens männlich',
+        'mixed_min_female' => 'Mixed: mindestens weiblich',
     ],
 
     'hints' => [
@@ -35,7 +39,9 @@ return [
         'participant_limit' => 'Leer lassen, wenn die Teilnahme nicht begrenzt ist.',
         'edition_day' => 'Nur nötig, wenn die Ausgabe mehrere Tage umfasst.',
         'allows_diverse' => 'Meisterschaften werden ohne „divers“ ausgetragen.',
-        'team_classifications' => 'In welchen Wertungen Staffeln und Teams starten können.',
+        'team_classifications' => 'In welchen Wertungen Staffeln und Teams starten können. Keine Auswahl bedeutet: alle. Passt eine Staffel in keine Wertung, startet sie in „Offen“ (W-18).',
+        'team_size' => 'Leer lassen, wenn es keine Grenze gibt; mindestens sind es zwei.',
+        'mixed_min' => 'Ab wie vielen Mitgliedern je Geschlecht eine Staffel als Mixed gilt, zum Beispiel 2 und 2 bei einer Meisterschaft.',
     ],
 
 ];
