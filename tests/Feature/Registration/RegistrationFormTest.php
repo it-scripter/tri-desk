@@ -273,3 +273,41 @@ it('limits how often the form can be sent', function () {
 it('links from the competition page to the registration', function () {
     $this->get("/{$this->slug}")->assertSee('Zur Anmeldung');
 });
+
+it('links every open race from the competition page with the race chosen', function () {
+    $this->get("/{$this->slug}")
+        ->assertSee("{$this->base}?wettbewerb={$this->race->slug}", false)
+        ->assertSee('Anmelden<span class="visually-hidden">: Volkstriathlon</span>', false);
+
+    $this->get("{$this->base}?wettbewerb={$this->race->slug}")->assertRedirect("{$this->base}/personen");
+    $this->get("{$this->base}/personen")->assertSuccessful()->assertSee('Volkstriathlon');
+});
+
+it('shows the list for a race that cannot be chosen', function () {
+    $this->get("{$this->base}?wettbewerb=gibt-es-nicht")
+        ->assertSuccessful()
+        ->assertSee('Bitte den Wettbewerb wählen.');
+});
+
+it('offers no registration on the competition page where the form would refuse it', function () {
+    // Registration window open, but no race has a price tier valid now.
+    $this->race->priceTiers()->update(['valid_from' => '2027-04-01 00:00:00']);
+
+    $this->get("/{$this->slug}")
+        ->assertSuccessful()
+        ->assertDontSee('Zur Anmeldung')
+        ->assertDontSee('?wettbewerb=', false);
+
+    $this->post($this->base, ['race' => $this->race->id])->assertSessionHasErrors(['registration']);
+});
+
+it('marks a sold out race on the competition page instead of linking it', function () {
+    $this->race->update(['participant_limit' => 1]);
+    Registration::factory()->for($this->race)->create();
+
+    $this->get("/{$this->slug}")
+        ->assertSee('Ausgebucht')
+        ->assertDontSee('?wettbewerb=', false);
+
+    $this->get("{$this->base}?wettbewerb={$this->race->slug}")->assertSuccessful()->assertSee('Ausgebucht');
+});

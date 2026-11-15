@@ -7,12 +7,12 @@ use App\Domain\Competition\Enums\Gender;
 use App\Domain\Competition\Enums\RaceFieldScope;
 use App\Domain\Competition\Exceptions\RegistrationRejected;
 use App\Domain\Competition\Models\Competition;
-use App\Domain\Competition\Models\Edition;
 use App\Domain\Competition\Models\Race;
 use App\Domain\Competition\Models\RaceField;
 use App\Domain\Competition\Models\RaceOption;
 use App\Domain\Competition\Models\Registration;
 use App\Domain\Competition\Services\PriceCalculator;
+use App\Domain\Competition\Services\RegistrationAvailability;
 use App\Domain\Competition\Services\RegistrationService;
 use App\Domain\Messaging\Mail\RegistrationConfirmation;
 use App\Http\Registration\RegistrationDraft;
@@ -20,7 +20,6 @@ use App\Http\Registration\RejectionField;
 use App\Support\CompetitionContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -47,18 +46,32 @@ class RegistrationFormController extends Controller
         private readonly CompetitionContext $context,
         private readonly RegistrationService $registrations,
         private readonly PriceCalculator $prices,
+        private readonly RegistrationAvailability $availability,
     ) {}
 
-    public function race(): View
+    /**
+     * The race step. A link from the competition page may name the race
+     * (?wettbewerb=slug); an open race is then chosen right away and the
+     * form starts with the persons. Anything else shows the list.
+     */
+    public function race(Request $request): View|RedirectResponse
     {
         $edition = $this->context->edition();
-        $races = $edition !== null ? $this->openRaces($edition) : collect();
+        $races = $edition !== null ? $this->availability->openRaces($edition) : collect();
+
+        $preselected = $races->firstWhere('slug', $request->query('wettbewerb'));
+
+        if ($preselected instanceof Race && ! $this->availability->isSoldOut($preselected)) {
+            $this->draft($request)->start($preselected);
+
+            return redirect()->route('competition.registration.people');
+        }
 
         return view('registration.race', [
             'races' => $races,
-            'open' => $edition !== null && $this->isOpen($edition),
+            'open' => $edition !== null && $this->availability->isEditionOpen($edition),
             'tiers' => $races->mapWithKeys(fn (Race $race): array => [$race->id => $this->prices->tierFor($race, now())]),
-            'soldOut' => $races->mapWithKeys(fn (Race $race): array => [$race->id => $this->isSoldOut($race)]),
+            'soldOut' => $races->mapWithKeys(fn (Race $race): array => [$race->id => $this->availability->isSoldOut($race)]),
         ]);
     }
 
@@ -73,6 +86,11 @@ class RegistrationFormController extends Controller
         ]);
 
         $race = Race::query()->whereKey($validated['race'])->firstOrFail();
+
+        if (! $this->availability->isRaceOpen($race)) {
+            return redirect()->route('competition.registration.race')
+                ->withErrors(['registration' => __('registration_form.race.none')]);
+        }
 
         $this->draft($request)->start($race);
 
@@ -420,40 +438,6 @@ class RegistrationFormController extends Controller
     private function requiredSlots(Race $race): int
     {
         return $race->isTeamRace() ? ($race->team_size_min ?? 2) : 1;
-    }
-
-    /**
-     * @return Collection<int, Race>
-     */
-    private function openRaces(Edition $edition): Collection
-    {
-        if (! $this->isOpen($edition)) {
-            return collect();
-        }
-
-        return $edition->races()
-            ->where('is_public', true)
-            ->get()
-            ->filter(fn (Race $race): bool => $this->prices->tierFor($race, now()) !== null)
-            ->values();
-    }
-
-    private function isOpen(Edition $edition): bool
-    {
-        return ! $edition->isClosed()
-            && $edition->registration_opens_at !== null
-            && now()->gte($edition->registration_opens_at)
-            && ($edition->registration_closes_at === null || now()->lte($edition->registration_closes_at));
-    }
-
-    /**
-     * Only a hint for the list; the binding check happens under the lock
-     * when the registration is stored.
-     */
-    private function isSoldOut(Race $race): bool
-    {
-        return $race->participant_limit !== null
-            && $race->registrations()->holdingPlace()->count() >= $race->participant_limit;
     }
 
     private function draftRace(Request $request): ?Race
