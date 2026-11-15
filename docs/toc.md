@@ -146,6 +146,22 @@ Anforderungen sind mit IDs versehen (W = Wettkampf), damit Claude Code und Tests
 | W-15 | Bestätigungsmail mit Magic-Link zur Selbstverwaltung (Daten ändern, Ummelden auf andere Person/Wettbewerb, Stornieren) | M |
 | W-16 | Dublettenprüfung (Name + Geburtsdatum + Wettbewerb) | S |
 | W-17 | Minderjährige: Einverständnis Erziehungsberechtigter erfassen | M |
+| W-18 | Wertung von Staffeln und Teams automatisch aus den Mitgliedern bestimmen (Regeln siehe unten) | M |
+
+**Wertung von Staffeln und Teams (W-18)**
+
+Die Regeln gelten für Staffeln und Teams gleichermaßen.
+
+1. **Wertungen je Wettbewerb:** Jeder Wettbewerb legt fest, welche der Wertungen Männer, Frauen, Mixed und Offen angeboten werden.
+2. **Automatische Zuordnung:** Das System bestimmt die Wertung bei der Anmeldung aus den Mitgliedern; Anmeldende wählen sie nicht selbst. Bei jeder Änderung eines Mitglieds (Datenänderung, Ummeldung auf eine andere Person) wird neu berechnet.
+3. **Männer / Frauen:** Alle Mitglieder werden als „m“ bzw. alle als „w“ gewertet.
+4. **Mixed:** Die Staffel erfüllt die Mindestanzahl je Geschlecht, die der Wettbewerb vorgibt. Standard ist mindestens ein Mitglied „m“ und ein Mitglied „w“; je Wettbewerb überschreibbar (z. B. 2 m + 2 w bei einer Meisterschafts-Mixed-Staffel).
+5. **Mitglieder mit „d“:** Es gilt die Einstellung des Altersklassen-Schemas des Wettbewerbs (W-05).
+   - „Eigene Wertung“ – oder der Wettbewerb hat kein Schema: Die Staffel kommt in die Wertung „Offen“.
+   - „Wertung nach Wahl“: Das Mitglied wählt bei der Anmeldung „m“ oder „w“ (Pflichtangabe) und zählt für die Wertung als das gewählte Geschlecht.
+6. **Offen als Auffangwertung:** Passt die Staffel in keine der angebotenen Wertungen – etwa eine Mixed-Staffel unterhalb der Mindestanzahl oder eine Staffel mit „d“-Mitglied –, startet sie in „Offen“.
+7. **Keine passende Wertung:** Bietet der Wettbewerb auch „Offen“ nicht an, ist die Anmeldung in dieser Besetzung nicht möglich; das Formular nennt den Grund. Eine Ummeldung, die zu einer solchen Besetzung führen würde, wird abgelehnt.
+8. **Keine Altersklassen für Staffeln:** Staffeln und Teams werden nur nach Wertung platziert. Die Altersklassen der einzelnen Mitglieder werden nicht zu einer Staffel-Altersklasse zusammengefasst.
 
 ### 4.3 Bezahlung (PayPal, SEPA-Lastschrift)
 
@@ -434,5 +450,5 @@ Die Entwicklungsblöcke enden eine Woche vor dem Anmeldestart, damit Zeit für P
 ## 11. Offene Fragen
 
 - [ ] Ergebnisse: dauerhaft aus der bestehenden Ergebnis-DB lesen oder künftig direkt ins Portal importieren? Für den Start nötig: Bedeutung der Spalte Entw bestätigen, Liste der AK-Kürzel, Zugriffsweg zur Alt-DB (gleicher Server?).
-- [ ] Geschlecht und Wertungen (W-05, offen seit Paket 2a): Je Wettbewerb lässt sich die Angabe „divers“ freischalten (Meisterschaften ohne „d“); je Altersklassen-Schema wird „d“ entweder eigens gewertet oder nach Wahl in „m“/„w“. Für Staffeln und Teams sind die Wertungen männlich, weiblich, mixed und offen je Wettbewerb wählbar. Noch auszuformulieren vor Paket 2b: Ab wann gilt eine Staffel als „mixed“ (Mindestanzahl je Geschlecht?), wie zählt ein Mitglied mit „d“, und wonach richtet sich die Altersklasse einer Staffel (ältestes Mitglied, Summe, keine)?
+- [x] Geschlecht und Wertungen (W-05, W-18): geklärt am 15.11.2026, Regeln siehe Abschnitt 4.2 unter W-18.
 - [ ] Preise und Altersklassen für 2027 (W-03 bis W-05): tatsächliche Preisstufen, Zusatzoptionen und Stornoregeln des Veranstalters sowie das verbindliche Altersklassen-Schema mit Kürzeln. Bis dahin enthält nur die lokale Entwicklungsumgebung Beispieldaten (`DemoPricingSeeder`).
