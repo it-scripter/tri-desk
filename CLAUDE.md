@@ -7,6 +7,9 @@ Portal für Wettkampf-Anmeldungen, Helferportal und Wettkampf-Webseiten eines Tr
 (W-xx Wettkampf, H-xx Helfer, C-xx CMS, B-xx Basisfunktionen). Beziehe dich in Plänen, Commits und
 Tests auf diese IDs. Bei Widersprüchen zwischen Code und Pflichtenheft: nachfragen, nicht raten.
 
+**Aktueller Stand: `docs/stand.md`** – welche Branches aufeinander aufbauen, was geprüft ist, was als
+Nächstes kommt. Zu Beginn einer Sitzung lesen, am Ende fortschreiben.
+
 ## Stack
 
 - PHP 8.4 (Produktion ≥ 8.3), Laravel 13, Filament 5, MariaDB
